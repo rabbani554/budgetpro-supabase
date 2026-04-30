@@ -24,25 +24,28 @@
   <!-- SheetJS / XLSX (Untuk Fitur Import Excel) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <!-- SUPABASE SDK -->
+  <!-- SUPABASE SDK (Menggantikan Firebase) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-200">
   <div id="root"></div>
 
+  <!-- Script Aplikasi React -->
   <script type="text/babel">
 
     // ====================================================================
-    // CONFIG SUPABASE
+    // ⚠️ PASTE SUPABASE CONFIG ANDA DI SINI
     // ====================================================================
     const SUPABASE_URL = 'https://wzhcyorshcxscgeajcgz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6aGN5b3JzaGN4c2NnZWFqY2d6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NDQxNTMsImV4cCI6MjA5MzEyMDE1M30.PJJJcqNpBlPW6DIQ3IyzxuIOF1ueSevqlohJ4FoTqz4';
+
+    // Inisialisasi Supabase
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     // ====================================================================
 
     const { useState, useEffect, useRef } = React;
     
-    // --- Komponen Icon FontAwesome (100% Original) ---
+    // --- Komponen Icon FontAwesome ---
     const FAIcon = ({ name, size = 20, className = "" }) => (
       <i className={`fa-solid fa-${name} ${className}`} 
          style={{ fontSize: size, width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -72,23 +75,49 @@
     const LockIcon = (p) => <FAIcon name="lock" {...p} />;
     const LogOutIcon = (p) => <FAIcon name="right-from-bracket" {...p} />;
 
-    const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
-    const displayDate = (start, end) => (!start ? '-' : (start === end ? start : `${start} s/d ${end}`));
+    // Format Rupiah
+    const formatRp = (angka) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(angka || 0);
+    };
+
+    // Format Tanggal Display
+    const displayDate = (start, end) => {
+      if (!start) return '-';
+      if (!end || start === end) return start;
+      return `${start} s/d ${end}`;
+    };
 
     function App() {
+      // Data State
       const [projects, setProjects] = useState([]);
       const [users, setUsers] = useState([]);
       const [currentUser, setCurrentUser] = useState(null);
       const [isInitializing, setIsInitializing] = useState(true);
+      
+      // View State
       const [currentView, setCurrentView] = useState('dashboard');
       const [activeProject, setActiveProject] = useState(null);
+      
+      // Modal State
       const [showNewProjectModal, setShowNewProjectModal] = useState(false);
       const [showItemModal, setShowItemModal] = useState(false);
       const [showActualModal, setShowActualModal] = useState(false);
       const [showDetailSidebar, setShowDetailSidebar] = useState(false);
       const [showFullReportSidebar, setShowFullReportSidebar] = useState(false);
       const [selectedItem, setSelectedItem] = useState(null);
+
+      // Custom Delete Confirmation State
       const [deleteConfig, setDeleteConfig] = useState({ isOpen: false, type: '', payload: null, title: '', message: '' });
+
+      // Fungsi Ambil Data Supabase
+      const fetchUsers = async () => {
+        const { data } = await supabase.from('users').select('*');
+        if (data) setUsers(data);
+      };
 
       const fetchProjects = async () => {
         const { data } = await supabase.from('projects').select('*').order('id', { ascending: false });
@@ -96,16 +125,31 @@
         setIsInitializing(false);
       };
 
+      // Init Load dari Supabase
       useEffect(() => {
+        // Load User Session dari memory browser
         const sessionUser = localStorage.getItem('budget_current_user');
         if (sessionUser) setCurrentUser(JSON.parse(sessionUser));
-        supabase.from('users').select('*').then(({data}) => { if(data) setUsers(data); });
+
+        fetchUsers();
         fetchProjects();
 
-        const sub = supabase.channel('realtime_projects').on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchProjects).subscribe();
-        return () => supabase.removeChannel(sub);
+        // Sinkronisasi data Real-time (Subscription)
+        const userSub = supabase.channel('users_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchUsers)
+          .subscribe();
+
+        const projectSub = supabase.channel('projects_changes')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchProjects)
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(userSub);
+          supabase.removeChannel(projectSub);
+        };
       }, []);
 
+      // Auto update state Active Project jika ada orang lain yang merubah datanya
       useEffect(() => {
          if (activeProject) {
             const updated = projects.find(p => p.id === activeProject.id);
@@ -113,16 +157,42 @@
          }
       }, [projects]);
 
-      const handleLogin = (username, password) => {
+      // --- Modul Auth ---
+      const handleLogin = async (username, password) => {
+        // Fallback jika belum ada user sama sekali di DB, buatkan admin default
+        if (users.length === 0 && username === 'admin' && password === 'admin123') {
+           const defaultAdmin = { username: 'admin', password: 'admin123', role: 'admin' };
+           await supabase.from('users').insert([defaultAdmin]);
+           
+           const userSession = { username: 'admin', role: 'admin' };
+           setCurrentUser(userSession);
+           localStorage.setItem('budget_current_user', JSON.stringify(userSession));
+           setCurrentView('dashboard');
+           return true;
+        }
+
         const found = users.find(u => u.username === username && u.password === password);
         if (found) {
-          const session = { username: found.username, role: found.role };
-          setCurrentUser(session);
-          localStorage.setItem('budget_current_user', JSON.stringify(session));
+          const userSession = { username: found.username, role: found.role };
+          setCurrentUser(userSession);
+          localStorage.setItem('budget_current_user', JSON.stringify(userSession));
           setCurrentView('dashboard');
           return true;
         }
         return false;
+      };
+
+      const handleRegister = async (username, password, role) => {
+        if (users.find(u => u.username === username)) return false; 
+        
+        const newUser = { username, password, role };
+        await supabase.from('users').insert([newUser]);
+        
+        const userSession = { username, role };
+        setCurrentUser(userSession);
+        localStorage.setItem('budget_current_user', JSON.stringify(userSession));
+        setCurrentView('dashboard');
+        return true;
       };
 
       const handleLogout = () => {
@@ -132,366 +202,1333 @@
         localStorage.removeItem('budget_current_user');
       };
 
+      // --- Modul Hapus Universal (Supabase) ---
+      const triggerDelete = (type, payload, title, message) => {
+        setDeleteConfig({ isOpen: true, type, payload, title, message });
+      };
+
       const executeDelete = async () => {
         const { type, payload } = deleteConfig;
+        
         if (type === 'project') {
           await supabase.from('projects').delete().eq('id', payload);
           setCurrentView('dashboard');
-        } else if (type === 'item') {
+        } 
+        else if (type === 'item') {
           const updatedItems = activeProject.items.filter(i => i.id !== payload);
-          await supabase.from('projects').update({ items: updatedItems }).eq('id', activeProject.id);
+          const updatedProject = { ...activeProject, items: updatedItems };
+          await supabase.from('projects').update({ items: updatedItems }).eq('id', updatedProject.id);
           setShowDetailSidebar(false);
-        } else if (type === 'transaction') {
+          setShowItemModal(false);
+        }
+        else if (type === 'transaction') {
            const newActuals = payload.currentActuals.filter(a => a.id !== payload.trxId);
            await saveActualsToDB(payload.itemId, newActuals); 
         }
+        
         setDeleteConfig({ isOpen: false, type: '', payload: null, title: '', message: '' });
       };
 
+      // --- Handlers App (Menyimpan Langsung ke Supabase) ---
       const handleUpdateProjectInfo = async (field, value) => {
         const updated = { ...activeProject, [field]: value };
+        // Update lokal agar UI responsif
         setActiveProject(updated); 
         await supabase.from('projects').update({ [field]: value }).eq('id', updated.id);
       };
 
       const handleSaveItem = async (itemData) => {
         let updatedItems = [];
-        if (itemData.id && activeProject.items.find(i => i.id === itemData.id)) {
+        if (itemData.id) {
           updatedItems = activeProject.items.map(i => i.id === itemData.id ? itemData : i);
         } else {
           updatedItems = [...activeProject.items, { ...itemData, id: Date.now().toString(), actuals: [], status: 'pending' }];
         }
-        await supabase.from('projects').update({ items: updatedItems }).eq('id', activeProject.id);
+        
+        const updatedProject = { ...activeProject, items: updatedItems };
+        await supabase.from('projects').update({ items: updatedItems }).eq('id', updatedProject.id);
         setShowItemModal(false);
       };
 
       const saveActualsToDB = async (itemId, newActuals) => {
-        const item = activeProject.items.find(i => i.id === itemId);
-        const plannedTotal = item.qty * item.budget;
-        const actualTotal = newActuals.reduce((sum, act) => sum + Number(act.amount), 0);
-        let status = newActuals.length > 0 ? (actualTotal > plannedTotal ? 'over-budget' : (actualTotal < plannedTotal ? 'under-budget' : 'on-budget')) : 'pending';
-        const updatedItems = activeProject.items.map(i => i.id === itemId ? { ...i, actuals: newActuals, status } : i);
-        await supabase.from('projects').update({ items: updatedItems }).eq('id', activeProject.id);
-        if (selectedItem && selectedItem.id === itemId) setSelectedItem({ ...item, actuals: newActuals, status });
+  // Pastikan kita tidak memproses jika data project belum siap
+  if (!activeProject || !activeProject.items) return;
+
+  // 1. Hitung total berdasarkan data TERBARU dari modal (bukan dari state lama)
+  const plannedItem = activeProject.items.find(i => i.id === itemId);
+  const plannedTotal = plannedItem.qty * plannedItem.budget;
+  const actualTotal = newActuals.reduce((sum, act) => sum + Number(act.amount), 0);
+  
+  // 2. Tentukan status
+  let status = 'pending';
+  if (newActuals.length > 0) {
+    status = actualTotal > plannedTotal ? 'over-budget' : (actualTotal < plannedTotal ? 'under-budget' : 'on-budget');
+  }
+
+  // 3. Buat array items baru dengan data aktual yang baru saja diinput
+  const updatedItems = activeProject.items.map(i => {
+    if (i.id === itemId) {
+      return { ...i, actuals: newActuals, status: status };
+    }
+    return i;
+  });
+
+  // 4. Update ke Supabase
+  const { error } = await supabase
+    .from('projects')
+    .update({ items: updatedItems })
+    .eq('id', activeProject.id);
+
+  if (error) {
+    console.error("Gagal simpan:", error);
+    alert("Gagal simpan ke server");
+  } else {
+    // 5. CRITICAL: Update state lokal agar UI langsung berubah tanpa refresh
+    setActiveProject(prev => ({ ...prev, items: updatedItems }));
+    setProjects(prevProj => prevProj.map(p => p.id === activeProject.id ? { ...p, items: updatedItems } : p));
+  }
+};
+
+      // --- Computations ---
+      const getItemActualTotal = (item) => {
+        if (item.actuals && Array.isArray(item.actuals)) {
+          return item.actuals.reduce((sum, a) => sum + Number(a.amount), 0);
+        }
+        return 0;
       };
 
-      const getItemActualTotal = (item) => (item.actuals || []).reduce((sum, a) => sum + Number(a.amount), 0);
       const calculateTotalPlan = (items) => items.reduce((sum, item) => sum + (item.qty * item.budget), 0);
       const calculateTotalActual = (items) => items.reduce((sum, item) => sum + getItemActualTotal(item), 0);
 
-      if (isInitializing) return <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-4"><i className="fa-solid fa-spinner fa-spin text-white text-4xl mb-4"></i><p className="text-blue-200 font-bold">Menghubungkan ke Server...</p></div>;
-      if (!currentUser) return <AuthScreen onLogin={handleLogin} users={users} />;
+      // --- Filter Project Berdasarkan Role ---
+      const displayedProjects = currentUser?.role === 'admin' 
+        ? projects 
+        : projects.filter(p => p.owner === currentUser?.username);
 
-      // --- LAYOUT UTAMA (1500+ LINE LOGIC MOCK) ---
+      // --- Komponen Antarmuka ---
+
+      // Layar Loading Awal
+      if (isInitializing) {
+         return (
+           <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-4">
+             <i className="fa-solid fa-spinner fa-spin text-white text-4xl mb-4"></i>
+             <p className="text-blue-200 font-bold">Menghubungkan ke Server...</p>
+           </div>
+         )
+      }
+
+      // Layar Login & Registrasi
+      const AuthScreen = () => {
+        const [isLoginView, setIsLoginView] = useState(true);
+        const [username, setUsername] = useState('');
+        const [password, setPassword] = useState('');
+        const [isAdminReg, setIsAdminReg] = useState(false);
+        const [error, setError] = useState('');
+
+        const submitAuth = async () => {
+          setError('');
+          if(!username || !password) {
+            setError('Username dan Password wajib diisi');
+            return;
+          }
+
+          if (isLoginView) {
+            const success = await handleLogin(username, password);
+            if (!success) setError('Username atau Password salah!');
+          } else {
+            const role = isAdminReg ? 'admin' : 'user';
+            const success = await handleRegister(username, password, role);
+            if (!success) setError('Username sudah digunakan!');
+          }
+        };
+
+        return (
+          <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-4">
+            <div className="text-center mb-8 animate-fade-in">
+              <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg text-blue-600">
+                <DollarSign size={40} />
+              </div>
+              <h1 className="text-3xl font-black text-white">BUDGETpro</h1>
+              <p className="text-blue-200 mt-2 font-medium text-xs px-6 italic leading-relaxed">
+                "semoga membantu kamu mempertanggungjawabkan budget yang sudah dibuat"
+              </p>
+            </div>
+
+            <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up">
+              <div className="flex mb-6 bg-gray-100 p-1 rounded-xl">
+                <button 
+                  onClick={() => {setIsLoginView(true); setError('');}} 
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isLoginView ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>
+                  Masuk
+                </button>
+                <button 
+                  onClick={() => {setIsLoginView(false); setError('');}} 
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isLoginView ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500'}`}>
+                  Daftar
+                </button>
+              </div>
+
+              {error && <div className="bg-red-50 text-red-600 p-3 rounded-xl text-xs font-bold text-center mb-4">{error}</div>}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Username</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <UserIcon size={16} />
+                    </div>
+                    <input type="text" value={username} onChange={e=>setUsername(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl pl-10 p-3 text-sm focus:border-blue-500 outline-none font-bold text-gray-800" 
+                      placeholder="Masukkan username" />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <LockIcon size={16} />
+                    </div>
+                    <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl pl-10 p-3 text-sm focus:border-blue-500 outline-none font-bold text-gray-800" 
+                      placeholder="Masukkan password" />
+                  </div>
+                </div>
+
+                {!isLoginView && (
+                  <label className="flex items-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
+                    <input type="checkbox" checked={isAdminReg} onChange={e=>setIsAdminReg(e.target.checked)} className="w-4 h-4 text-blue-600 rounded" />
+                    <span className="text-xs font-bold text-gray-700">Daftar sebagai Admin HR/Finance</span>
+                  </label>
+                )}
+
+                <button onClick={submitAuth} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md active:bg-blue-700 mt-2">
+                  {isLoginView ? 'Masuk ke Aplikasi' : 'Buat Akun'}
+                </button>
+                
+                {/* Petunjuk akun default */}
+                {isLoginView && users.length === 0 && (
+                   <p className="text-xs text-gray-400 text-center mt-2">Masuk dengan admin / admin123 untuk pertama kali</p>
+                )}
+              </div>
+            </div>
+            
+            <p className="text-white/60 text-xs mt-8 font-medium animate-fade-in text-center leading-relaxed">
+              Internal Use Only<br/>by RBN ;D
+            </p>
+          </div>
+        );
+      }
+
+      // 0. Komponen Konfirmasi Universal
+      const ConfirmModal = () => {
+        if (!deleteConfig.isOpen) return null;
+        return (
+          <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4 animate-fade-in no-print">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-slide-up">
+              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle size={32} />
+              </div>
+              <h3 className="font-black text-xl text-center text-gray-800 mb-2">{deleteConfig.title}</h3>
+              <p className="text-gray-500 text-center text-sm mb-6 leading-relaxed">{deleteConfig.message}</p>
+              
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteConfig({ isOpen: false })} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold text-sm">Batal</button>
+                <button onClick={executeDelete} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-sm shadow-md active:bg-red-700">Ya, Hapus</button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // 1. Modal Pembuatan Trip Baru & Import Excel
+      const NewProjectModal = () => {
+        const [formData, setFormData] = useState({
+          name: '', target: '', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0]
+        });
+
+        const handleDownloadTemplate = () => {
+          const wsData = [
+              ["Item", "Qty", "Unit", "Budget Satuan", "Keterangan"],
+              ["Hotel", 1, "malam", 350000, "Contoh: Hotel untuk tim"],
+              ["Tiket Pesawat", 2, "orang", 1500000, "Contoh: PP Jakarta"]
+          ];
+          const ws = XLSX.utils.aoa_to_sheet(wsData);
+          ws['!cols'] = [{wch: 25}, {wch: 8}, {wch: 12}, {wch: 18}, {wch: 35}];
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Template Budget");
+          XLSX.writeFile(wb, "Template_BUDGETpro.xlsx");
+        };
+
+        const handleImportExcel = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = async (evt) => {
+              const bstr = evt.target.result;
+              const wb = XLSX.read(bstr, { type: 'binary' });
+              const wsname = wb.SheetNames[0];
+              const ws = wb.Sheets[wsname];
+              const data = XLSX.utils.sheet_to_json(ws);
+              
+              const importedItems = data.map((row, idx) => ({
+                  id: Date.now().toString() + '_' + idx,
+                  name: row['Item'] || row['Nama Item'] || 'Item ' + (idx+1),
+                  qty: Number(row['Qty'] || row['Jumlah'] || 1),
+                  unit: row['Unit'] || row['Satuan'] || 'paket',
+                  budget: Number(row['Budget Satuan'] || row['Budget'] || row['Harga'] || 0),
+                  notes: row['Keterangan'] || row['Catatan'] || '',
+                  actuals: [],
+                  status: 'pending'
+              }));
+
+              const newProject = {
+                  id: Date.now().toString(),
+                  name: formData.name || 'Project Hasil Import',
+                  target: formData.target || '',
+                  startDate: formData.startDate,
+                  endDate: formData.endDate,
+                  owner: currentUser.username, 
+                  items: importedItems
+              };
+
+              await supabase.from('projects').insert([newProject]);
+              setActiveProject(newProject);
+              setShowNewProjectModal(false);
+              setCurrentView('project_detail');
+          };
+          reader.readAsBinaryString(file);
+        };
+
+        const handleCreateManual = async () => {
+  if (!formData.name) return alert("Nama Event wajib diisi!");
+
+  // Siapkan objek data sesuai dengan kolom di tabel Supabase Anda
+  const newProject = {
+    id: Date.now().toString(),
+    name: formData.name,
+    target: formData.target || '',
+    startDate: formData.startDate,
+    endDate: formData.endDate,
+    owner: currentUser.username,
+    items: [] // Ini akan masuk ke kolom jsonb
+  };
+
+  // 1. Simpan ke Supabase
+  const { data, error } = await supabase
+    .from('projects')
+    .insert([newProject])
+    .select(); // Mengambil hasil kembalian untuk konfirmasi
+
+  if (error) {
+    console.error("Error Simpan:", error);
+    alert("Gagal simpan ke server: " + error.message);
+  } else {
+    // 2. Jika sukses, update state lokal agar muncul di dashboard
+    setProjects(prev => [newProject, ...prev]);
+    setActiveProject(newProject);
+    setShowNewProjectModal(false);
+    setCurrentView('project_detail');
+  }
+};
+
+        return (
+          <div className="fixed inset-0 bg-black/70 z-50 flex flex-col justify-end animate-fade-in no-print">
+            <div className="absolute inset-0" onClick={() => setShowNewProjectModal(false)}></div>
+            <div className="bg-white rounded-t-3xl w-full max-h-[95vh] flex flex-col relative z-10 animate-slide-up shadow-2xl">
+              
+              <div className="bg-white px-6 py-5 border-b border-gray-100 flex justify-between items-center rounded-t-3xl flex-shrink-0">
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-blue-600 mb-0.5">Persiapan</p>
+                  <h3 className="font-bold text-gray-800 text-lg">Buat Event / Trip Baru</h3>
+                </div>
+                <button onClick={() => setShowNewProjectModal(false)} className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-600 rounded-full active:bg-gray-200">
+                  <FAIcon name="xmark" size={16} />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Event</label>
+                  <input type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Perjalanan Dinas JKT" />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Mulai</label>
+                    <input type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                      value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Selesai</label>
+                    <input type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                      value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Target (Opsional)</label>
+                  <textarea className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
+                    rows="2" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} placeholder="Tujuan perjalanan..." />
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm font-bold text-gray-800 mb-3">Pilih Cara Input Budget:</p>
+                  
+                  <div className="space-y-3">
+                    <button onClick={handleCreateManual} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md active:bg-blue-700 flex items-center justify-center gap-2">
+                      <Plus size={16} /> Mulai Kosong (Input Manual)
+                    </button>
+                    
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                      <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-400">ATAU</span></div>
+                    </div>
+
+                    <div className="bg-green-50 p-4 rounded-xl border border-green-200 space-y-3">
+                      <button onClick={handleDownloadTemplate} className="w-full py-2.5 bg-white border-2 border-green-600 text-green-700 rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-green-100">
+                        <Download size={14} /> Download Template Excel
+                      </button>
+                      <label className="cursor-pointer w-full py-3 bg-green-600 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-green-700">
+                        <ExcelIcon size={16} /> Import dari Excel
+                        <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleImportExcel} />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const Dashboard = () => (
+        <div className="pb-24 animate-fade-in">
+          <div className="bg-blue-600 rounded-b-3xl p-6 text-white shadow-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4">
+              <DollarSign size={120} />
+            </div>
+            
+            <div className="relative z-10 flex justify-between items-start mb-3">
+              <div>
+                <h1 className="text-2xl font-bold leading-none mb-1">BUDGETpro</h1>
+                <div className="flex items-center gap-2 text-blue-100 text-sm">
+                  <UserIcon size={12} />
+                  <span>Halo, <strong className="text-white capitalize">{currentUser.username}</strong></span>
+                  <span className="bg-blue-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">{currentUser.role}</span>
+                </div>
+              </div>
+              <button onClick={handleLogout} className="w-10 h-10 bg-blue-700 text-blue-100 hover:text-white rounded-full flex items-center justify-center shadow-sm active:bg-blue-800 transition-colors" title="Keluar">
+                <LogOutIcon size={16} />
+              </button>
+            </div>
+            
+            <p className="text-blue-100 text-[11px] leading-snug relative z-10 italic pr-4">
+              "semoga membantu kamu mempertanggungjawabkan budget yang sudah dibuat"
+              <span className="block mt-1 font-bold not-italic text-[10px] text-blue-200 tracking-wider">by RBN ;D</span>
+            </p>
+          </div>
+
+          <div className="p-4 mt-2">
+            <div className="flex justify-between items-end mb-4">
+              <h2 className="font-bold text-gray-700 flex items-center gap-2">
+                <FileText size={18} /> Daftar Trip / Event
+              </h2>
+              {currentUser.role === 'admin' && (
+                <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-1 rounded font-bold uppercase">Semua User</span>
+              )}
+            </div>
+            
+            <div className="space-y-4">
+              {displayedProjects.map(proj => {
+                const totalPlan = calculateTotalPlan(proj.items);
+                const totalActual = calculateTotalActual(proj.items);
+                const variance = totalPlan - totalActual;
+                const isComplete = proj.items.length > 0 && proj.items.every(i => i.status !== 'pending');
+
+                return (
+                  <div 
+                    key={proj.id} 
+                    onClick={() => { setActiveProject(proj); setCurrentView('project_detail'); }}
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden"
+                  >
+                    {/* Badge Owner Khusus Tampilan Admin */}
+                    {currentUser.role === 'admin' && (
+                       <div className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold uppercase w-max mb-2">
+                         Oleh: {proj.owner}
+                       </div>
+                    )}
+
+                    <div className="flex justify-between items-start mb-2 pr-6">
+                      <h3 className="font-bold text-gray-800 line-clamp-2 leading-tight">{proj.name}</h3>
+                    </div>
+                    
+                    <div className="absolute top-4 right-4">
+                      {isComplete ? (
+                        <div className="bg-green-100 text-green-600 p-1.5 rounded-full"><CheckCircle size={16} /></div>
+                      ) : (
+                        <div className="bg-orange-100 text-orange-500 p-1.5 rounded-full"><AlertCircle size={16} /></div>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-gray-500 mb-4 flex items-center gap-1">
+                      <FAIcon name="calendar-day" size={12} className="mr-1" />
+                      {displayDate(proj.startDate, proj.endDate)} • {proj.items.length} Item
+                    </p>
+                    
+                    <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">Rencana:</span>
+                        <span className="font-semibold text-gray-700">{formatRp(totalPlan)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">Terpakai:</span>
+                        <span className="font-semibold text-gray-700">{formatRp(totalActual)}</span>
+                      </div>
+                      <div className={`flex justify-between text-xs font-bold pt-2 border-t border-gray-200 mt-2 ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <span>{variance >= 0 ? 'Sisa:' : 'Over:'}</span>
+                        <span>{formatRp(Math.abs(variance))}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {displayedProjects.length === 0 && (
+                <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-dashed border-gray-200">
+                  <FileText size={48} className="mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Belum ada project.</p>
+                  {currentUser.role !== 'admin' && <p className="text-xs mt-1">Tap tombol + di bawah untuk membuat.</p>}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setShowNewProjectModal(true)}
+            className="fixed bottom-6 right-1/2 translate-x-1/2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-full flex items-center gap-2 shadow-[0_8px_16px_rgba(37,99,235,0.3)] transition-colors z-30 font-semibold text-sm w-max no-print"
+          >
+            <Plus size={20} /> Buat Trip Baru
+          </button>
+        </div>
+      );
+
+      const ProjectDetail = () => {
+        const totalPlan = calculateTotalPlan(activeProject.items);
+        const totalActual = calculateTotalActual(activeProject.items);
+        const variance = totalPlan - totalActual;
+
+        const handleExportCSV = () => {
+          let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+          csvContent += `Event / Trip:,${activeProject.name}\n`;
+          csvContent += `Pembuat:,${activeProject.owner}\n`;
+          csvContent += `Tanggal:,${displayDate(activeProject.startDate, activeProject.endDate)}\n`;
+          csvContent += `Target:,${(activeProject.target || '').replace(/,/g, ";")}\n\n`;
+
+          csvContent += "No,Item,Qty,Unit,Budget Satuan,Total Rencana,Total Aktual (LPJ),Sisa/Over,Status,Keterangan\n";
+          activeProject.items.forEach((item, index) => {
+            const plan = item.qty * item.budget;
+            const actual = getItemActualTotal(item);
+            const varianceItem = plan - actual;
+            const notes = (item.notes || '').replace(/,/g, ";");
+            const name = (item.name || '').replace(/,/g, ";");
+            csvContent += `${index + 1},${name},${item.qty},${item.unit},${item.budget},${plan},${actual},${varianceItem},${item.status},${notes}\n`;
+          });
+
+          csvContent += "\n\n--- DETAIL TRANSAKSI AKTUAL ---\n";
+          csvContent += "Item Budget,Nominal (Rp),Keterangan Transaksi\n";
+          let hasDetails = false;
+          activeProject.items.forEach(item => {
+            if (item.actuals && item.actuals.length > 0) {
+              hasDetails = true;
+              item.actuals.forEach(act => {
+                csvContent += `${(item.name || '').replace(/,/g, ";")},${act.amount},${(act.description || '').replace(/,/g, ";")}\n`;
+              });
+            }
+          });
+          if (!hasDetails) csvContent += "Belum ada transaksi aktual\n";
+
+          const encodedUri = encodeURI(csvContent);
+          const link = document.createElement("a");
+          link.setAttribute("href", encodedUri);
+          link.setAttribute("download", `LPJ_${activeProject.name.replace(/\s+/g, '_')}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+
+        // Jika bukan pembuat (dan admin), disable edit
+        const isReadonly = currentUser.role === 'admin' && activeProject.owner !== currentUser.username;
+
+        return (
+          <div className="pb-28 animate-fade-in bg-gray-50 min-h-screen">
+            <div className="sticky top-0 bg-white z-20 px-4 py-4 border-b border-gray-100 flex items-center justify-between shadow-sm no-print">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <button onClick={() => setCurrentView('dashboard')} className="p-2 -ml-2 bg-gray-50 text-gray-600 rounded-full active:bg-gray-200 shrink-0">
+                  <ArrowLeft size={20} />
+                </button>
+                <h2 className="font-bold text-gray-800 text-lg truncate">{activeProject.name || 'Project Baru'}</h2>
+              </div>
+              
+              {!isReadonly && (
+                <button 
+                  onClick={() => triggerDelete('project', activeProject.id, 'Hapus Event Ini?', 'Seluruh rincian biaya dan struk LPJ akan terhapus secara permanen. Lanjutkan?')}
+                  className="w-9 h-9 flex justify-center items-center rounded-full text-red-500 bg-red-50 hover:bg-red-100 shrink-0"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+
+            <div className="bg-white p-4 border-b border-gray-100 space-y-4 shadow-sm">
+              <div>
+                <label className="block text-xs font-bold text-blue-600 uppercase mb-1">Nama Event / Trip</label>
+                <input type="text" value={activeProject.name} onChange={(e) => handleUpdateProjectInfo('name', e.target.value)}
+                  className="w-full text-base font-semibold text-gray-800 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none" 
+                  placeholder="Contoh: Kunjungan Jkt" disabled={isReadonly} />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-blue-600 uppercase mb-1">Mulai</label>
+                  <input type="date" value={activeProject.startDate || ''} onChange={(e) => handleUpdateProjectInfo('startDate', e.target.value)}
+                    className="w-full text-sm text-gray-700 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none" disabled={isReadonly} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-blue-600 uppercase mb-1">Selesai</label>
+                  <input type="date" value={activeProject.endDate || ''} onChange={(e) => handleUpdateProjectInfo('endDate', e.target.value)}
+                    className="w-full text-sm text-gray-700 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none" disabled={isReadonly} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-blue-600 uppercase mb-1">Target / Tujuan</label>
+                <textarea value={activeProject.target} onChange={(e) => handleUpdateProjectInfo('target', e.target.value)}
+                  className="w-full text-sm text-gray-700 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none resize-none" rows="2" placeholder="Tujuan perjalanan..." disabled={isReadonly}/>
+              </div>
+            </div>
+
+            <div className="p-4">
+              <div className="grid grid-cols-2 gap-3 mb-3 no-print">
+                <div className="bg-blue-50 rounded-2xl p-3 border border-blue-100">
+                  <p className="text-[10px] text-blue-600 font-bold uppercase mb-1">Rencana</p>
+                  <p className="text-sm font-bold text-gray-800">{formatRp(totalPlan)}</p>
+                </div>
+                <div className="bg-purple-50 rounded-2xl p-3 border border-purple-100">
+                  <p className="text-[10px] text-purple-600 font-bold uppercase mb-1">Aktual (LPJ)</p>
+                  <p className="text-sm font-bold text-gray-800">{formatRp(totalActual)}</p>
+                </div>
+              </div>
+              <div className={`${variance >= 0 ? 'bg-green-500' : 'bg-red-500'} rounded-2xl p-4 text-white flex justify-between items-center shadow-sm`}>
+                <div>
+                  <p className="text-xs font-medium opacity-90 uppercase tracking-wider">
+                    {variance >= 0 ? 'Sisa Dana (Aman)' : 'Over Budget (Minus)'}
+                  </p>
+                  <p className="text-lg font-bold mt-0.5">
+                    {formatRp(Math.abs(variance))}
+                  </p>
+                </div>
+                <div className="bg-white/20 p-2 rounded-full no-print">
+                  {variance >= 0 ? <TrendingDown size={24}/> : <TrendingUp size={24}/>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-4 no-print">
+                <button onClick={() => setShowFullReportSidebar(true)} className="flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold active:bg-blue-700 shadow-sm">
+                  <FileInvoice size={16} /> Detail Laporan
+                </button>
+                <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 bg-green-600 text-white py-2.5 rounded-xl text-sm font-bold active:bg-green-700 shadow-sm">
+                  <Download size={16} /> Export Excel
+                </button>
+              </div>
+            </div>
+
+            <div className="px-4 mt-6">
+              <h3 className="font-bold text-gray-700 mb-3 flex items-center justify-between">
+                <span>Rincian Budget</span>
+                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">{activeProject.items.length} Item</span>
+              </h3>
+              
+              <div className="space-y-3">
+                {activeProject.items.map((item, index) => {
+                  const itemPlanTotal = item.qty * item.budget;
+                  return (
+                    <div 
+                      key={item.id} 
+                      onClick={() => { setSelectedItem(item); setShowDetailSidebar(true); }}
+                      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform group"
+                    >
+                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                        item.status === 'under-budget' ? 'bg-green-500' : 
+                        item.status === 'over-budget' ? 'bg-red-500' : 
+                        item.status === 'on-budget' ? 'bg-blue-500' : 'bg-gray-300'
+                      }`}></div>
+
+                      {!isReadonly && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); triggerDelete('item', item.id, 'Hapus Item Biaya?', `Anda yakin ingin menghapus '${item.name}' beserta seluruh struknya?`); }}
+                          className="absolute top-3 right-3 p-2 bg-red-50 text-red-400 rounded-full hover:bg-red-100 hover:text-red-600 z-10"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+
+                      <div className="flex justify-between items-start mb-1 pl-2 pr-8">
+                        <div>
+                          <h4 className="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">{item.name}</h4>
+                          <p className="text-xs text-gray-500 mt-0.5">{item.qty} {item.unit} x {formatRp(item.budget)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pl-2 mt-2">
+                        {item.actuals && item.actuals.length > 0 && (
+                          <div className="flex -space-x-2">
+                            {item.actuals.filter(a => a.receiptUrl).slice(0,3).map((act, idx) => (
+                                <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-green-50 flex items-center justify-center text-green-600 overflow-hidden shadow-sm" title={act.description || 'Struk'}>
+                                  <img src={act.receiptUrl} className="w-full h-full object-cover" alt="struk"/>
+                                </div>
+                            ))}
+                            {item.actuals.filter(a => a.receiptUrl).length > 3 && (
+                                <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 z-10 shadow-sm">
+                                  +{item.actuals.filter(a => a.receiptUrl).length - 3}
+                                </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {item.notes && <p className="text-xs text-gray-500 pl-2 mt-2 italic">Ket: {item.notes}</p>}
+
+                      <div className="bg-gray-50 rounded-xl p-3 mt-3 pl-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs text-gray-500">Plan:</span>
+                          <span className="text-xs font-semibold text-gray-700">{formatRp(itemPlanTotal)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-500">Aktual ({item.actuals?.length || 0} Trx):</span>
+                          <span className={`text-sm font-bold ${
+                            item.status === 'pending' ? 'text-gray-400' : 
+                            item.status === 'over-budget' ? 'text-red-600' : 'text-green-600'
+                          }`}>
+                            {item.status === 'pending' ? 'Belum Input' : formatRp(getItemActualTotal(item))}
+                          </span>
+                        </div>
+                      </div>
+
+                      {!isReadonly && (
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 pl-2 no-print">
+                          <button onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowActualModal(true); }} className="flex-1 bg-purple-100 text-purple-700 py-2.5 rounded-xl text-xs font-bold active:bg-purple-200 transition-colors flex items-center justify-center gap-1">
+                            <Camera size={14} /> Input Aktual
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowItemModal(true); }} className="px-4 bg-gray-100 text-gray-700 py-2.5 rounded-xl text-xs font-bold active:bg-gray-200 transition-colors">
+                            Edit
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {!isReadonly && (
+              <button 
+                onClick={() => { setSelectedItem(null); setShowItemModal(true); }}
+                className="fixed bottom-6 right-1/2 translate-x-1/2 bg-gray-900 text-white px-6 py-3.5 rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.3)] flex items-center gap-2 z-30 font-semibold text-sm w-max active:scale-95 transition-transform no-print"
+              >
+                <Plus size={20} /> Tambah Biaya
+              </button>
+            )}
+          </div>
+        );
+      };
+
+      const ItemPlanModal = () => {
+        const [formData, setFormData] = useState(selectedItem || { name: '', qty: 1, unit: 'orang', budget: 0, notes: '' });
+
+        return (
+          <div className="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end animate-fade-in no-print">
+            <div className="absolute inset-0" onClick={() => setShowItemModal(false)}></div>
+            <div className="bg-white rounded-t-3xl w-full max-h-[90vh] overflow-y-auto relative z-10 animate-slide-up shadow-2xl">
+              <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-3xl">
+                <h3 className="font-bold text-gray-800 text-lg">
+                  {selectedItem ? 'Edit Rencana Biaya' : 'Tambah Rencana'}
+                </h3>
+              </div>
+              
+              <div className="p-6 space-y-5 pb-8">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Item / Pengeluaran</label>
+                  <input type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Cth: Tiket Pesawat, Hotel..." />
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Jml / Qty</label>
+                    <input type="number" min="1" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                      value={formData.qty || ''} onChange={e => setFormData({...formData, qty: Number(e.target.value)})} />
+                  </div>
+                  <div className="flex-[2]">
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Satuan</label>
+                    <input type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                      value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="org / mlm / tiket" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Budget Satuan (Rp)</label>
+                  <input type="number" className="w-full border-2 border-gray-200 rounded-xl p-3 text-base font-bold focus:border-blue-500 outline-none"
+                    value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} placeholder="0" />
+                </div>
+                <div className="bg-blue-50 p-4 rounded-2xl flex justify-between items-center">
+                  <span className="text-xs font-bold text-blue-600 uppercase">Total Plan</span>
+                  <span className="font-black text-xl text-blue-700">{formatRp((formData.qty || 0) * (formData.budget || 0))}</span>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Catatan Tambahan (Opsional)</label>
+                  <textarea className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
+                    rows="2" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Untuk siapa/keperluan spesifik..." />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button onClick={() => setShowItemModal(false)} className="flex-1 py-3.5 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
+                  <button onClick={() => handleSaveItem(formData)} className="flex-[2] py-3.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md active:bg-blue-700">Simpan Rencana</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const ActualInputModal = () => {
+        const [actuals, setActuals] = useState(selectedItem?.actuals || []);
+        const [newAmount, setNewAmount] = useState('');
+        const [newDesc, setNewDesc] = useState('');
+        const [receiptUrl, setReceiptUrl] = useState(null);
+        const [isUploading, setIsUploading] = useState(false);
+
+        const plannedTotal = selectedItem ? (selectedItem.qty * selectedItem.budget) : 0;
+        const draftTotal = actuals.reduce((sum, act) => sum + Number(act.amount), 0);
+        const variance = plannedTotal - draftTotal;
+
+        const handleFileChange = (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => setReceiptUrl(reader.result);
+            reader.readAsDataURL(file);
+          }
+        };
+
+        const handleAddTransaction = async () => {
+          const numericAmount = Number(newAmount.replace(/\./g, ''));
+          if (!numericAmount || numericAmount <= 0) return;
+
+          setIsUploading(true);
+          let finalUrl = receiptUrl;
+
+          try {
+            if (receiptUrl && receiptUrl.startsWith('data:')) {
+              const res = await fetch(receiptUrl);
+              const blob = await res.blob();
+              const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}.jpg`;
+              
+              const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, {
+                contentType: 'image/jpeg'
+              });
+              
+              if (error) throw error;
+              const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
+              finalUrl = publicUrlData.publicUrl;
+            }
+
+            const newAct = {
+              id: Date.now().toString(),
+              amount: numericAmount,
+              description: newDesc,
+              receiptUrl: finalUrl
+            };
+            setActuals([...actuals, newAct]);
+            setNewAmount('');
+            setNewDesc('');
+            setReceiptUrl(null);
+          } catch (error) {
+            alert("Gagal mengunggah foto.");
+            console.error(error);
+          }
+          setIsUploading(false);
+        };
+
+        return (
+          <div className="fixed inset-0 bg-black/70 z-[40] flex flex-col justify-end animate-fade-in no-print">
+            <div className="absolute inset-0" onClick={() => setShowActualModal(false)}></div>
+            <div className="bg-white rounded-t-3xl w-full max-h-[95vh] flex flex-col relative z-10 animate-slide-up shadow-2xl">
+              <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-3xl flex-shrink-0">
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-purple-600 mb-0.5">Kelola Transaksi LPJ</p>
+                  <h3 className="font-bold text-gray-800 line-clamp-1">{selectedItem?.name}</h3>
+                </div>
+              </div>
+              
+              <div className="p-6 overflow-y-auto space-y-6">
+                <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100">
+                  <div className="flex justify-between items-center mb-2 text-xs">
+                    <span className="font-bold text-gray-500 uppercase">Budget</span>
+                    <span className="font-bold text-gray-800">{formatRp(plannedTotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2 text-xs">
+                    <span className="font-bold text-gray-500 uppercase">Total Terpakai</span>
+                    <span className="font-bold text-purple-700">{formatRp(draftTotal)}</span>
+                  </div>
+                  <div className={`pt-2 border-t border-purple-200 flex justify-between items-center text-xs font-bold ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span>{variance >= 0 ? 'Sisa Budget:' : 'Over Budget:'}</span>
+                    <span>{formatRp(Math.abs(variance))}</span>
+                  </div>
+                </div>
+
+        {actuals.length > 0 && (
+        <div className="space-y-3">
+            {actuals.map((act) => (
+            <div key={act.id} className="bg-white border border-gray-200 rounded-xl p-3 flex gap-3 items-center shadow-sm">
+                {/* BAGIAN PREVIEW GAMBAR DI LIST */}
+                {act.receiptUrl ? (
+                <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                    <img src={act.receiptUrl} className="w-full h-full object-cover" alt="struk" />
+                </div>
+                ) : (
+                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
+                    <i className="fa-solid fa-file-invoice text-xl"></i>
+                </div>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-800 text-sm">{formatRp(act.amount)}</p>
+                <p className="text-xs text-gray-500 truncate">{act.description || 'Tanpa keterangan'}</p>
+                </div>
+                
+                <button onClick={() => setActuals(actuals.filter(a => a.id !== act.id))} className="p-2 text-red-500">
+                <i className="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+            ))}
+        </div>
+        )}
+
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-4">
+                  <input 
+                    type="text" 
+                    inputMode="numeric"
+                    className="w-full border-2 border-gray-200 rounded-xl p-3 text-lg font-black text-gray-800 focus:border-purple-500 outline-none"
+                    value={newAmount} 
+                    onChange={e => {
+                      const raw = e.target.value.replace(/\D/g, ''); 
+                      setNewAmount(raw === '' ? '' : parseInt(raw).toLocaleString('id-ID'));
+                    }} 
+                    placeholder="Nominal (Rp)"
+                  />
+                  <input 
+                    type="text" 
+                    className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-purple-500 outline-none"
+                    value={newDesc} 
+                    onChange={e => setNewDesc(e.target.value)} 
+                    placeholder="Keterangan..."
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600">
+                      <Camera size={16} className="text-purple-600" /> Kamera
+                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+                    </label>
+                    <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600">
+                      <Upload size={16} className="text-purple-600" /> Galeri
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                    </label>
+                  </div>
+                  <button 
+                    onClick={handleAddTransaction}
+                    disabled={!newAmount || isUploading}
+                    className="w-full py-3 bg-purple-100 text-purple-700 rounded-xl font-bold text-sm disabled:opacity-50"
+                  >
+                    {isUploading ? 'Mengunggah...' : '+ Tambah ke Daftar'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Footer Modal yang diperbaiki */}
+      <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0 pb-10">
+        <button onClick={() => setShowActualModal(false)} className="py-3.5 px-6 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
+        <button 
+  onClick={async () => {
+    // Pastikan kita mengirim variabel 'actuals' yang berisi daftar transaksi di modal
+    if (actuals.length === 0) {
+      if (!confirm("Belum ada transaksi diinput, simpan sebagai kosong?")) return;
+    }
+    
+    await saveActualsToDB(selectedItem.id, actuals);
+    setShowActualModal(false); 
+  }} 
+  className="flex-1 py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-xl active:bg-purple-700"
+>
+  <CheckCircle size={18} /> Simpan LPJ
+</button>
+      </div>
+            </div>
+          </div>
+        );
+      };
+
+      const ItemDetailSidebar = () => {
+        if (!selectedItem) return null;
+        
+        const planTotal = selectedItem.qty * selectedItem.budget;
+        const actualTotal = getItemActualTotal(selectedItem);
+        const variance = planTotal - actualTotal;
+
+        const isReadonly = currentUser.role === 'admin' && activeProject?.owner !== currentUser.username;
+
+        return (
+          <div className="fixed inset-0 z-[40] flex justify-center bg-black/60 animate-fade-in no-print">
+            <div className="absolute inset-0 cursor-pointer" onClick={() => setShowDetailSidebar(false)}></div>
+            <div className="w-full max-w-md bg-gray-50 h-full shadow-2xl flex flex-col animate-slide-left relative z-10 overflow-hidden">
+              <div className="bg-white px-4 py-4 border-b border-gray-100 flex items-center gap-3 shadow-sm flex-shrink-0">
+                <button onClick={() => setShowDetailSidebar(false)} className="p-2 -ml-2 bg-gray-50 text-gray-600 rounded-full active:bg-gray-200">
+                  <ArrowLeft size={20} />
+                </button>
+                <h2 className="font-bold text-gray-800 text-lg truncate flex-1">Rincian & Riwayat</h2>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="text-xl font-black text-gray-800 leading-tight">{selectedItem.name}</h3>
+                    <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase shrink-0 ${
+                        selectedItem.status === 'under-budget' ? 'bg-green-100 text-green-700' : 
+                        selectedItem.status === 'over-budget' ? 'bg-red-100 text-red-700' : 
+                        selectedItem.status === 'on-budget' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
+                      }`}>
+                      {selectedItem.status === 'pending' ? 'Pending' : 
+                       selectedItem.status === 'under-budget' ? 'Aman' : 
+                       selectedItem.status === 'over-budget' ? 'Over' : 'Pas'}
+                    </div>
+                  </div>
+                  <p className="text-sm font-medium text-gray-500 bg-gray-100 inline-block px-3 py-1 rounded-lg">
+                    {selectedItem.qty} {selectedItem.unit} <span className="mx-1">x</span> {formatRp(selectedItem.budget)}
+                  </p>
+                  {selectedItem.notes && (
+                    <div className="mt-4 bg-yellow-50/50 border border-yellow-100 p-3 rounded-xl flex gap-2 items-start">
+                      <FileText size={16} className="text-yellow-600 mt-0.5 shrink-0" />
+                      <p className="text-sm text-gray-700 italic leading-snug">{selectedItem.notes}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Budget Rencana</span>
+                    <span className="font-bold text-gray-800 text-base">{formatRp(planTotal)}</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Terpakai (Aktual)</span>
+                    <span className="font-black text-purple-700 text-lg">{formatRp(actualTotal)}</span>
+                  </div>
+                  <div className={`pt-4 border-t border-gray-100 flex justify-between items-center text-sm font-bold ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className="uppercase text-[11px] tracking-wider">{variance >= 0 ? 'Sisa Budget (Aman)' : 'Kekurangan (Over)'}</span>
+                    <span className="text-lg">{formatRp(Math.abs(variance))}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-700 mb-4 flex items-center justify-between">
+                    <span>Riwayat Pengeluaran</span>
+                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
+                      {selectedItem.actuals?.length || 0} Trx
+                    </span>
+                  </h4>
+                  {selectedItem.actuals && selectedItem.actuals.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedItem.actuals.map((act, idx) => (
+                        <div key={idx} className="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center transition-all hover:shadow-md group">
+                          {act.receiptUrl ? (
+                            <a href={act.receiptUrl} target="_blank" rel="noreferrer" className="w-14 h-14 flex-shrink-0 rounded-xl overflow-hidden border border-gray-200 relative">
+                              <img src={act.receiptUrl} alt="struk" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                              <div className="absolute inset-0 bg-black/10"></div>
+                            </a>
+                          ) : (
+                            <div className="w-14 h-14 flex-shrink-0 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                              <FileText size={20} />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-black text-gray-800 text-base mb-0.5">{formatRp(act.amount)}</p>
+                            <p className="text-xs text-gray-500 truncate leading-snug">{act.description || <span className="italic opacity-60">Tanpa keterangan tambahan</span>}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300">
+                        <FileText size={24} />
+                      </div>
+                      <p className="text-sm font-medium text-gray-500">Belum ada transaksi</p>
+                      {!isReadonly && <p className="text-xs text-gray-400 mt-1">Tap tombol di bawah untuk mengisi LPJ</p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {!isReadonly && (
+                <div className="p-4 bg-white border-t border-gray-100 shrink-0">
+                  <button 
+                    onClick={() => { setShowDetailSidebar(false); setShowActualModal(true); }}
+                    className="w-full py-4 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-[0_8px_16px_rgba(147,51,234,0.25)] active:bg-purple-700 flex justify-center items-center gap-2 transition-colors"
+                  >
+                    <Plus size={18} /> Tambah Transaksi LPJ Baru
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      const FullReportSidebar = () => {
+        const [isExporting, setIsExporting] = useState(false);
+
+        if (!activeProject) return null;
+        
+        const totalPlan = calculateTotalPlan(activeProject.items);
+        const totalActual = calculateTotalActual(activeProject.items);
+        const variance = totalPlan - totalActual;
+
+        // --- Ekstrak Lampiran Bukti Transaksi ---
+        const attachments = [];
+        activeProject.items.forEach((item, itemIdx) => {
+          if (item.actuals && item.actuals.length > 0) {
+            item.actuals.forEach((act) => {
+              if (act.receiptUrl) {
+                attachments.push({
+                  itemNo: itemIdx + 1,
+                  itemName: item.name,
+                  desc: act.description || 'Tanpa keterangan',
+                  amount: act.amount,
+                  url: act.receiptUrl
+                });
+              }
+            });
+          }
+        });
+
+        const handleExportPDF = () => {
+          setIsExporting(true);
+          setTimeout(() => {
+            const element = document.getElementById('pdf-report-content');
+            const opt = {
+              margin:       [15, 10, 15, 10], 
+              filename:     `LPJ_${activeProject.name.replace(/\s+/g, '_')}.pdf`,
+              image:        { type: 'jpeg', quality: 0.98 },
+              html2canvas:  { scale: 2, useCORS: true },
+              jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+              pagebreak:    { mode: ['css', 'legacy'] } 
+            };
+
+            window.html2pdf().set(opt).from(element).save().then(() => {
+              setIsExporting(false);
+            }).catch(err => {
+              console.error("Gagal export PDF:", err);
+              setIsExporting(false);
+              alert("Terjadi kesalahan saat memproses PDF.");
+            });
+          }, 300);
+        };
+
+        return (
+          <div className="fixed inset-0 z-[40] flex justify-center bg-gray-50 animate-slide-left overflow-y-auto">
+            <div className="w-full max-w-md bg-gray-50 min-h-screen shadow-2xl sm:border-x border-gray-300">
+              <div className="sticky top-0 bg-white px-4 py-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-20">
+                <button onClick={() => setShowFullReportSidebar(false)} className="p-2 -ml-2 bg-gray-50 text-gray-600 rounded-full active:bg-gray-200">
+                  <ArrowLeft size={20} />
+                </button>
+                <h2 className="font-bold text-gray-800 text-lg flex-1">Laporan Keseluruhan</h2>
+                <button 
+                  onClick={handleExportPDF} 
+                  disabled={isExporting}
+                  className={`px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors ${isExporting ? 'bg-gray-200 text-gray-500' : 'bg-blue-100 hover:bg-blue-200 text-blue-700'}`}
+                >
+                  {isExporting ? <i className="fa-solid fa-spinner fa-spin"></i> : <Printer size={16} />}
+                  {isExporting ? 'Menyiapkan...' : 'Cetak PDF'}
+                </button>
+              </div>
+
+              <div id="pdf-report-content" className="p-6 bg-white w-full">
+                <div className="text-center mb-8 border-b border-black pb-6">
+                  <h1 className="text-2xl font-black text-black uppercase leading-snug">{activeProject.name}</h1>
+                  <p className="text-gray-600 font-medium text-sm mt-1">Tanggal: {displayDate(activeProject.startDate, activeProject.endDate)}</p>
+                  <p className="text-gray-600 font-medium text-sm">PJ Program: {activeProject.owner}</p>
+                  {activeProject.target && (
+                    <p className="text-black text-sm mt-3 italic bg-transparent border border-gray-300 p-3 rounded-lg">
+                      Target: {activeProject.target}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-10">
+                  <div className="border border-gray-400 p-4 rounded-xl text-center bg-transparent">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Rencana</p>
+                    <p className="text-xl font-black text-black mt-1">{formatRp(totalPlan)}</p>
+                  </div>
+                  <div className="border border-gray-400 p-4 rounded-xl text-center bg-transparent">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Aktual (Terpakai)</p>
+                    <p className="text-xl font-black text-black mt-1">{formatRp(totalActual)}</p>
+                  </div>
+                  <div className="col-span-2 border border-gray-400 p-4 rounded-xl text-center bg-transparent">
+                    <p className={`text-xs font-bold uppercase tracking-wider ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {variance >= 0 ? 'Sisa Dana (Under Budget)' : 'Kekurangan Dana (Over Budget)'}
+                    </p>
+                    <p className={`text-2xl font-black mt-1 text-black`}>
+                      {formatRp(Math.abs(variance))}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-black text-lg mb-5 border-b-2 border-black pb-2">Rincian & Riwayat per Item</h3>
+                  <div className="space-y-6">
+                    {activeProject.items.map((item, index) => {
+                      const itemPlan = item.qty * item.budget;
+                      const itemActual = getItemActualTotal(item);
+                      const itemVar = itemPlan - itemActual;
+                      
+                      return (
+                        <div key={item.id} className="border border-gray-400 rounded-xl overflow-hidden" style={{ pageBreakInside: 'avoid' }}>
+                          <div className="bg-gray-100 p-4 border-b border-gray-400">
+                            <h4 className="font-bold text-black text-base">{index + 1}. {item.name}</h4>
+                            <p className="text-xs font-medium text-gray-600 mt-0.5">{item.qty} {item.unit} x {formatRp(item.budget)}</p>
+                          </div>
+                          
+                          <div className="p-4">
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="text-gray-600 font-medium">Alokasi Rencana:</span>
+                              <span className="font-bold text-black">{formatRp(itemPlan)}</span>
+                            </div>
+                            
+                            <div className="mt-4">
+                              <p className="text-[11px] font-bold text-gray-500 uppercase mb-2 tracking-wider">Riwayat Transaksi:</p>
+                              {item.actuals && item.actuals.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {item.actuals.map((act, i) => (
+                                    <li key={i} className="flex justify-between text-sm items-start gap-3 bg-transparent p-1">
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-gray-500 mt-0.5">•</span>
+                                        <span className="text-gray-800">{act.description || <span className="italic text-gray-500">Tanpa keterangan spesifik</span>}</span>
+                                      </div>
+                                      <span className="font-bold text-black whitespace-nowrap">{formatRp(act.amount)}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-sm italic text-gray-500">- Belum ada riwayat transaksi aktual -</p>
+                              )}
+                            </div>
+                            
+                            <div className="mt-5 pt-3 border-t border-dashed border-gray-400 flex justify-between items-center">
+                              <span className="text-sm font-bold text-gray-800">Total Terpakai:</span>
+                              <span className="text-sm font-black text-black">{formatRp(itemActual)}</span>
+                            </div>
+                            <div className="flex justify-between items-center mt-1.5">
+                              <span className="text-xs font-medium text-gray-600">{itemVar >= 0 ? 'Sisa Item:' : 'Over Item:'}</span>
+                              <span className={`text-xs font-bold text-gray-800`}>{formatRp(Math.abs(itemVar))}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className={`mt-16 justify-between px-10 ${isExporting ? 'flex' : 'hidden'}`}>
+                  <div className="text-center">
+                    <p className="mb-20 text-sm text-black">Dibuat Oleh,</p>
+                    <p className="font-bold border-b border-black pb-1 min-w-[150px] inline-block"></p>
+                    <p className="text-xs text-gray-600 mt-1 capitalize">{activeProject.owner}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="mb-20 text-sm text-black">Mengetahui,</p>
+                    <p className="font-bold border-b border-black pb-1 min-w-[150px] inline-block"></p>
+                    <p className="text-xs text-gray-600 mt-1">Finance / HRD</p>
+                  </div>
+                </div>
+                
+                {/* --- BAGIAN LAMPIRAN FOTO --- */}
+                {attachments.length > 0 && (
+                  <div className="mt-16 pt-8" style={{ pageBreakBefore: 'always' }}>
+                    <h3 className="font-bold text-black text-lg mb-6 border-b-2 border-black pb-2 text-center uppercase tracking-widest">
+                      Lampiran Bukti Transaksi
+                    </h3>
+                    <div className="grid grid-cols-2 gap-6">
+                      {attachments.map((att, idx) => (
+                        <div key={idx} className="border border-gray-400 p-3 rounded-xl flex flex-col bg-transparent" style={{ pageBreakInside: 'avoid' }}>
+                          <div className="mb-3 border-b border-dashed border-gray-400 pb-2">
+                            <p className="text-sm font-bold text-black">
+                              Item {att.itemNo}: {att.itemName}
+                            </p>
+                            <div className="flex justify-between items-start mt-1">
+                              <p className="text-xs text-gray-700 italic pr-2">
+                                {att.desc}
+                              </p>
+                              <p className="text-xs font-bold text-black bg-gray-200 px-2 py-1 rounded whitespace-nowrap">
+                                {formatRp(att.amount)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="w-full h-48 bg-transparent rounded-lg flex items-center justify-center">
+                            <img src={att.url} className="max-w-full max-h-full object-contain" alt={`Bukti ${idx+1}`} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // Tampilkan halaman Login jika belum ada session
+      if (!currentUser) {
+        return <AuthScreen />;
+      }
+
+      // Main App Return
       return (
-        <div className="bg-gray-200 min-h-screen flex justify-center font-sans">
-          <div className="w-full max-w-md bg-gray-50 min-h-screen relative shadow-2xl sm:border-x border-gray-300 overflow-x-hidden">
+        <div className="bg-gray-200 min-h-screen flex justify-center">
+          <div className="w-full max-w-md bg-gray-50 min-h-screen relative shadow-2xl sm:border-x border-gray-300 font-sans overflow-x-hidden">
             
             <main>
-              {currentView === 'dashboard' ? (
-                <Dashboard 
-                  currentUser={currentUser} 
-                  projects={projects} 
-                  onLogout={handleLogout} 
-                  onSelect={(p) => { setActiveProject(p); setCurrentView('project_detail'); }} 
-                  onNew={() => setShowNewProjectModal(true)} 
-                  calcPlan={calculateTotalPlan} 
-                  calcActual={calculateTotalActual}
-                />
-              ) : (
-                <ProjectDetail 
-                  project={activeProject} 
-                  onBack={() => setCurrentView('dashboard')} 
-                  onDelete={() => setDeleteConfig({ isOpen: true, type: 'project', payload: activeProject.id, title: 'Hapus Event?', message: 'Data hilang permanen.' })}
-                  onUpdate={handleUpdateProjectInfo}
-                  onAddItem={() => { setSelectedItem(null); setShowItemModal(true); }}
-                  onEditItem={(item) => { setSelectedItem(item); setShowItemModal(true); }}
-                  onInputLPJ={(item) => { setSelectedItem(item); setShowActualModal(true); }}
-                  onViewItem={(item) => { setSelectedItem(item); setShowDetailSidebar(true); }}
-                  onShowReport={() => setShowFullReportSidebar(true)}
-                  calcPlan={calculateTotalPlan}
-                  calcActual={calculateTotalActual}
-                  calcItemActual={getItemActualTotal}
-                  triggerDelete={(id, name) => setDeleteConfig({ isOpen: true, type: 'item', payload: id, title: 'Hapus Item?', message: `Yakin hapus ${name}?` })}
-                />
-              )}
+              {currentView === 'dashboard' ? <Dashboard /> : <ProjectDetail />}
             </main>
 
-            {showNewProjectModal && <NewProjectModal onClose={() => setShowNewProjectModal(false)} onSave={async (p) => { await supabase.from('projects').insert([p]); setProjects([p, ...projects]); setActiveProject(p); setShowNewProjectModal(false); setCurrentView('project_detail'); }} user={currentUser} />}
-            {showItemModal && <ItemPlanModal item={selectedItem} onSave={handleSaveItem} onClose={() => setShowItemModal(false)} />}
-            {showActualModal && <ActualInputModal item={selectedItem} onSave={saveActualsToDB} onClose={() => setShowActualModal(false)} projId={activeProject.id} triggerDeleteTrx={(trxId, currentActuals) => setDeleteConfig({ isOpen: true, type: 'transaction', payload: {itemId: selectedItem.id, trxId, currentActuals}, title: 'Hapus Bukti?', message: 'Riwayat akan dihapus.' })} />}
-            {showDetailSidebar && <ItemDetailSidebar item={selectedItem} onClose={() => setShowDetailSidebar(false)} onInput={() => { setShowDetailSidebar(false); setShowActualModal(true); }} calcItemActual={getItemActualTotal} />}
-            {showFullReportSidebar && <FullReportSidebar project={activeProject} onClose={() => setShowFullReportSidebar(false)} calcPlan={calculateTotalPlan} calcActual={calculateTotalActual} calcItemActual={getItemActualTotal} />}
-            {deleteConfig.isOpen && <ConfirmModal config={deleteConfig} onConfirm={executeDelete} onCancel={() => setDeleteConfig({ isOpen: false })} />}
+            {showNewProjectModal && <NewProjectModal />}
+            {showItemModal && <ItemPlanModal />}
+            {showActualModal && <ActualInputModal />}
+            {showDetailSidebar && <ItemDetailSidebar />}
+            {showFullReportSidebar && <FullReportSidebar />}
+            
+            <ConfirmModal />
             
             <style dangerouslySetInnerHTML={{__html: `
               .animate-fade-in { animation: fadeIn 0.2s ease-out; }
               .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
               .animate-slide-left { animation: slideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+              
               @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
               @keyframes slideUp { from { transform: translateY(100%); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
               @keyframes slideLeft { from { transform: translateX(100%); } to { transform: translateX(0); } }
+              
               ::-webkit-scrollbar { width: 0px; background: transparent; }
             `}} />
           </div>
         </div>
-      );
-    }
-
-    // --- KOMPONEN DASHBOARD (GAYA ASLI) ---
-    function Dashboard({ currentUser, projects, onLogout, onSelect, onNew, calcPlan, calcActual }) {
-      return (
-        <div className="pb-24 animate-fade-in">
-          <div className="bg-blue-600 rounded-b-3xl p-6 text-white shadow-md relative overflow-hidden">
-            <div className="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4"><DollarSign size={120} /></div>
-            <div className="relative z-10 flex justify-between items-start mb-3">
-              <div>
-                <h1 className="text-2xl font-bold leading-none mb-1 uppercase tracking-tighter">BUDGETpro</h1>
-                <div className="flex items-center gap-2 text-blue-100 text-sm">
-                  <UserIcon size={12} /><span>Halo, <strong className="text-white capitalize">{currentUser.username}</strong></span>
-                  <span className="bg-blue-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">{currentUser.role}</span>
-                </div>
-              </div>
-              <button onClick={onLogout} className="w-10 h-10 bg-blue-700 text-blue-100 rounded-full flex items-center justify-center active:bg-blue-800 transition-colors"><LogOutIcon size={16} /></button>
-            </div>
-            <p className="text-blue-100 text-[11px] italic pr-4">"semoga membantu kamu mempertanggungjawabkan budget yang sudah dibuat"<br/><span className="font-bold not-italic text-[10px] text-blue-200 tracking-wider">by RBN ;D</span></p>
-          </div>
-          <div className="p-4 mt-2">
-            <h2 className="font-bold text-gray-700 mb-4 flex items-center gap-2"><FileText size={18} /> Daftar Trip / Event</h2>
-            <div className="space-y-4">
-              {projects.filter(p => currentUser.role === 'admin' || p.owner === currentUser.username).map(proj => (
-                <div key={proj.id} onClick={() => onSelect(proj)} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden">
-                  <h3 className="font-bold text-gray-800 line-clamp-2 leading-tight uppercase text-sm">{proj.name}</h3>
-                  <p className="text-[10px] text-gray-500 mb-4">{displayDate(proj.startDate, proj.endDate)}</p>
-                  <div className="bg-gray-50 rounded-xl p-3 space-y-2 text-[10px]">
-                    <div className="flex justify-between"><span>Rencana:</span><span className="font-semibold text-gray-700">{formatRp(calcPlan(proj.items))}</span></div>
-                    <div className="flex justify-between"><span>Terpakai:</span><span className="font-semibold text-gray-700">{formatRp(calcActual(proj.items))}</span></div>
-                    <div className="flex justify-between font-bold border-t pt-2 mt-2 text-green-600"><span>Sisa:</span><span>{formatRp(calcPlan(proj.items) - calcActual(proj.items))}</span></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <button onClick={onNew} className="fixed bottom-6 right-1/2 translate-x-1/2 bg-blue-600 text-white px-6 py-3.5 rounded-full flex items-center gap-2 shadow-xl z-30 font-bold text-xs uppercase tracking-widest">+ Buat Trip Baru</button>
-        </div>
-      );
-    }
-
-    // --- KOMPONEN PROJECT DETAIL (GAYA ASLI) ---
-    function ProjectDetail({ project, onBack, onDelete, onUpdate, onAddItem, onEditItem, onInputLPJ, onViewItem, onShowReport, calcPlan, calcActual, calcItemActual, triggerDelete }) {
-      const diff = calcPlan(project.items) - calcActual(project.items);
-      return (
-        <div className="pb-28 animate-fade-in bg-gray-50 min-h-screen">
-          <div className="sticky top-0 bg-white z-20 px-4 py-4 border-b flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
-              <button onClick={onBack} className="p-2 bg-gray-50 text-gray-600 rounded-full"><ArrowLeft size={20} /></button>
-              <h2 className="font-bold text-gray-800 text-lg truncate uppercase">{project.name}</h2>
-            </div>
-            <button onClick={onDelete} className="w-9 h-9 flex justify-center items-center rounded-full text-red-500 bg-red-50"><Trash2 size={16} /></button>
-          </div>
-          <div className="bg-white p-4 border-b space-y-4 shadow-sm">
-            <input type="text" value={project.name} onChange={e => onUpdate('name', e.target.value)} className="w-full text-sm font-black text-gray-800 border-b-2 outline-none focus:border-blue-500 pb-1 uppercase" />
-            <div className="grid grid-cols-2 gap-3">
-              <input type="date" value={project.startDate} onChange={e => onUpdate('startDate', e.target.value)} className="w-full text-xs font-bold p-2 bg-gray-50 rounded-lg outline-none" />
-              <input type="date" value={project.endDate} onChange={e => onUpdate('endDate', e.target.value)} className="w-full text-xs font-bold p-2 bg-gray-50 rounded-lg outline-none" />
-            </div>
-          </div>
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-blue-50 p-3 rounded-2xl border border-blue-100"><p className="text-[9px] text-blue-600 font-black uppercase">Rencana</p><p className="text-xs font-bold text-gray-800">{formatRp(calcPlan(project.items))}</p></div>
-              <div className="bg-purple-50 p-3 rounded-2xl border border-purple-100"><p className="text-[9px] text-purple-600 font-black uppercase">Aktual</p><p className="text-xs font-bold text-gray-800">{formatRp(calcActual(project.items))}</p></div>
-            </div>
-            <div className={`${diff >= 0 ? 'bg-green-500' : 'bg-red-500'} rounded-2xl p-4 text-white flex justify-between items-center shadow-sm`}>
-              <div><p className="text-[10px] font-bold uppercase opacity-80">{diff >= 0 ? 'Sisa Dana' : 'Over Budget'}</p><p className="text-lg font-black">{formatRp(Math.abs(diff))}</p></div>
-              <div className="bg-white/20 p-2 rounded-full">{diff >= 0 ? <TrendingDown size={24}/> : <TrendingUp size={24}/>}</div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={onShowReport} className="bg-blue-600 text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-sm"><FileInvoice size={14} className="inline mr-1" /> Laporan</button>
-              <button onClick={() => alert('Fitur Export Excel akan memproses data Anda...')} className="bg-green-600 text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-sm"><Download size={14} className="inline mr-1" /> Excel</button>
-            </div>
-          </div>
-          <div className="px-4 mt-2 space-y-3">
-            <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-[0.2em]">Rincian Budget</h3>
-            {project.items.map(item => (
-              <div key={item.id} onClick={() => onViewItem(item)} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden active:scale-[0.98] transition-all">
-                <div className={`absolute left-0 top-0 bottom-0 w-1 ${item.status === 'over-budget' ? 'bg-red-500' : (item.status === 'pending' ? 'bg-gray-300' : 'bg-green-500')}`}></div>
-                <div className="flex justify-between items-start mb-1">
-                  <div><h4 className="font-bold text-gray-800 text-xs uppercase">{item.name}</h4><p className="text-[10px] text-gray-400 font-bold">{item.qty} {item.unit} x {formatRp(item.budget)}</p></div>
-                  <button onClick={(e) => { e.stopPropagation(); triggerDelete(item.id, item.name); }} className="text-red-300 active:text-red-500"><Trash2 size={12}/></button>
-                </div>
-                <div className="flex gap-2 mt-3 pt-3 border-t">
-                  <button onClick={(e) => { e.stopPropagation(); onInputLPJ(item); }} className="flex-1 bg-purple-100 text-purple-700 py-2.5 rounded-xl text-[10px] font-black uppercase">Input LPJ</button>
-                  <button onClick={(e) => { e.stopPropagation(); onEditItem(item); }} className="px-4 bg-gray-100 text-gray-700 py-2.5 rounded-xl text-[10px] font-black uppercase">Edit</button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button onClick={onAddItem} className="fixed bottom-6 right-1/2 translate-x-1/2 bg-gray-900 text-white px-8 py-4 rounded-full shadow-2xl z-30 font-black text-xs uppercase tracking-widest">+ Tambah Biaya</button>
-        </div>
-      );
-    }
-
-    // --- MODAL & SIDEBAR (GAYA ASLI) ---
-    function NewProjectModal({ onClose, onSave, user }) {
-      const [n, setN] = useState(''); const [s, setS] = useState(new Date().toISOString().split('T')[0]); const [e, setE] = useState(new Date().toISOString().split('T')[0]);
-      const handleImport = (event) => {
-        const file = event.target.files[0]; const reader = new FileReader();
-        reader.onload = (evt) => {
-          const wb = XLSX.read(evt.target.result, { type: 'binary' });
-          const items = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]).map((r, i) => ({ id: Date.now() + "_" + i, name: r.Item || 'Item ' + i, qty: Number(r.Qty || 1), unit: r.Unit || 'pcs', budget: Number(r['Budget Satuan'] || 0), actuals: [], status: 'pending' }));
-          onSave({ id: Date.now().toString(), name: n || 'Import', startDate: s, endDate: e, owner: user.username, items });
-        };
-        reader.readAsBinaryString(file);
-      };
-      return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex flex-col justify-end animate-slide-up"><div className="bg-white rounded-t-[2.5rem] p-8 space-y-4 shadow-2xl">
-          <h3 className="font-black text-center text-gray-400 text-[10px] tracking-widest uppercase mb-4">Setup Trip Baru</h3>
-          <input type="text" placeholder="NAMA EVENT" className="w-full border-2 p-4 rounded-2xl font-black text-sm uppercase outline-none focus:border-blue-500" onChange={x=>setN(x.target.value)} />
-          <div className="grid grid-cols-2 gap-2">
-            <input type="date" value={s} onChange={x=>setS(x.target.value)} className="border-2 p-3 rounded-xl font-bold text-xs" />
-            <input type="date" value={e} onChange={x=>setE(x.target.value)} className="border-2 p-3 rounded-xl font-bold text-xs" />
-          </div>
-          <button onClick={() => onSave({ id: Date.now().toString(), name: n || 'New Trip', startDate: s, endDate: e, owner: user.username, items: [] })} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs">Simpan Manual</button>
-          <label className="w-full py-4 bg-green-600 text-white rounded-2xl font-black uppercase text-xs text-center cursor-pointer">Import Excel <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleImport} /></label>
-          <button onClick={onClose} className="w-full py-2 text-gray-400 font-bold uppercase text-[10px]">Batalkan</button>
-        </div></div>
-      );
-    }
-
-    function ItemPlanModal({ item, onSave, onClose }) {
-      const [f, setF] = useState(item || { name: '', qty: 1, unit: 'orang', budget: 0 });
-      return (
-        <div className="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end animate-slide-up"><div className="bg-white rounded-t-[2.5rem] p-8 space-y-4 shadow-2xl">
-          <h3 className="font-black text-gray-400 text-[10px] tracking-widest uppercase mb-4">{item ? 'Edit Rencana' : 'Tambah Rencana'}</h3>
-          <input type="text" placeholder="NAMA ITEM" value={f.name} onChange={e => setF({...f, name: e.target.value})} className="w-full border-2 p-4 rounded-2xl font-black text-sm uppercase outline-none focus:border-blue-500" />
-          <div className="flex gap-2">
-            <input type="number" placeholder="QTY" value={f.qty} onChange={e => setF({...f, qty: Number(e.target.value)})} className="w-1/3 border-2 p-4 rounded-2xl font-black text-sm" />
-            <input type="text" placeholder="UNIT" value={f.unit} onChange={e => setF({...f, unit: e.target.value})} className="w-2/3 border-2 p-4 rounded-2xl font-black text-sm uppercase" />
-          </div>
-          <input type="number" placeholder="BUDGET SATUAN (RP)" value={f.budget} onChange={e => setF({...f, budget: Number(e.target.value)})} className="w-full border-2 p-4 rounded-2xl font-black text-sm" />
-          <button onClick={() => onSave(f)} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs">Simpan Item</button>
-          <button onClick={onClose} className="w-full py-2 text-gray-400 font-bold uppercase text-[10px]">Tutup</button>
-        </div></div>
-      );
-    }
-
-    function ActualInputModal({ item, onSave, onClose, projId, triggerDeleteTrx }) {
-      const [actuals, setActuals] = useState(item.actuals || []); const [amt, setAmt] = useState(''); const [dsc, setDsc] = useState(''); const [receipt, setReceipt] = useState(null); const [up, setUp] = useState(false);
-      const add = async () => {
-        if(!amt) return; setUp(true); let url = null;
-        if (receipt) { const path = `${projId}/${Date.now()}.jpg`; const res = await fetch(receipt); const blob = await res.blob(); await supabase.storage.from('receipts').upload(path, blob); const { data } = supabase.storage.from('receipts').getPublicUrl(path); url = data.publicUrl; }
-        const newList = [...actuals, { id: Date.now().toString(), amount: Number(amt.replace(/\./g, '')), description: dsc, receiptUrl: url }];
-        setActuals(newList); setAmt(''); setDsc(''); setReceipt(null); setUp(false);
-      };
-      return (
-        <div className="fixed inset-0 bg-black/70 z-50 flex flex-col justify-end animate-slide-up"><div className="bg-white rounded-t-[2.5rem] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-          <h3 className="font-black text-gray-800 uppercase tracking-tighter leading-tight">LPJ: {item.name}</h3>
-          <div className="space-y-2">{actuals.map(a => (<div key={a.id} className="bg-white p-3 rounded-xl border flex gap-3 items-center shadow-sm">
-            {a.receiptUrl ? <img src={a.receiptUrl} className="w-10 h-10 object-cover rounded-lg"/> : <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400"><ImageIcon size={16}/></div>}
-            <div className="flex-1 min-w-0"><p className="font-black text-xs">{formatRp(a.amount)}</p><p className="text-[10px] text-gray-400 truncate uppercase font-bold">{a.description}</p></div>
-            <button onClick={() => triggerDeleteTrx(a.id, actuals)} className="text-red-400 p-2"><Trash2 size={14}/></button></div>))}
-          </div>
-          <div className="bg-gray-100 p-5 rounded-[2.5rem] space-y-4">
-            <input type="text" placeholder="NOMINAL RP" value={amt} onChange={e => setAmt(e.target.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, "."))} className="w-full p-4 rounded-2xl font-black text-center text-xl text-purple-700 outline-none" />
-            <input type="text" placeholder="KETERANGAN" value={dsc} onChange={e => setDsc(e.target.value)} className="w-full p-3 rounded-xl text-xs font-bold outline-none" />
-            {receipt && <div className="relative"><img src={receipt} className="w-full h-32 object-cover rounded-xl" /><button onClick={()=>setReceipt(null)} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"><Trash2 size={12}/></button></div>}
-            <div className="grid grid-cols-2 gap-2">
-              <label className="bg-white p-3 rounded-xl border-2 flex items-center justify-center gap-2 font-black text-[10px] uppercase cursor-pointer"><Camera size={14} className="text-purple-600"/> Kamera <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const r = new FileReader(); r.onload = () => setReceipt(r.result); r.readAsDataURL(e.target.files[0]); }} /></label>
-              <label className="bg-white p-3 rounded-xl border-2 flex items-center justify-center gap-2 font-black text-[10px] uppercase cursor-pointer"><Upload size={14} className="text-purple-600"/> Galeri <input type="file" accept="image/*" className="hidden" onChange={e => { const r = new FileReader(); r.onload = () => setReceipt(r.result); r.readAsDataURL(e.target.files[0]); }} /></label>
-            </div>
-            <button onClick={add} disabled={up} className="w-full py-4 bg-white border-2 border-purple-600 text-purple-700 rounded-2xl font-black uppercase text-[10px] active:bg-purple-50">{up ? 'PROSES...' : '+ Tambah ke Daftar'}</button>
-          </div>
-          <button onClick={async () => { await onSave(item.id, actuals); onClose(); }} className="w-full py-5 bg-purple-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl active:bg-purple-700">Update Ke Server</button>
-          <button onClick={onClose} className="w-full py-2 text-gray-400 font-bold uppercase text-[10px]">Tutup</button>
-        </div></div>
-      );
-    }
-
-    function ItemDetailSidebar({ item, onClose, onInput, calcItemActual }) {
-      return (
-        <div className="fixed inset-0 z-[40] flex justify-center bg-black/60 animate-fade-in"><div className="absolute inset-0" onClick={onClose}></div><div className="w-full max-w-md bg-white h-full flex flex-col animate-slide-left relative z-10 p-6 overflow-hidden">
-          <button onClick={onClose} className="mb-4 text-blue-600 font-black text-[10px] flex items-center gap-2 uppercase"><ArrowLeft size={16}/> Kembali</button>
-          <div className="flex-1 overflow-y-auto space-y-6">
-            <h2 className="text-2xl font-black uppercase tracking-tighter">{item.name}</h2>
-            <div className="bg-gray-50 p-5 rounded-2xl border space-y-3">
-              <div className="flex justify-between text-xs"><span>Rencana:</span><span className="font-bold">{formatRp(item.qty * item.budget)}</span></div>
-              <div className="flex justify-between text-xs"><span>Aktual:</span><span className="font-bold text-purple-600">{formatRp(calcItemActual(item))}</span></div>
-              <div className="flex justify-between font-black border-t pt-3 mt-3"><span>Sisa:</span><span className="text-green-600">{formatRp((item.qty * item.budget) - calcItemActual(item))}</span></div>
-            </div>
-            <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest border-b pb-2">Riwayat Pengeluaran</h3>
-            <div className="space-y-3">
-              {(item.actuals || []).map((a, i) => (<div key={i} className="bg-white p-3 rounded-xl border flex gap-4 shadow-sm">
-                {a.receiptUrl ? <a href={a.receiptUrl} target="_blank"><img src={a.receiptUrl} className="w-14 h-14 object-cover rounded-xl border"/></a> : <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center text-gray-300"><ImageIcon size={20}/></div>}
-                <div className="flex-1 min-w-0"><p className="font-black text-sm">{formatRp(a.amount)}</p><p className="text-[10px] text-gray-400 uppercase font-bold truncate leading-relaxed">{a.description || 'Struk Pengeluaran'}</p></div>
-              </div>))}
-              {(!item.actuals || item.actuals.length === 0) && <p className="text-center py-10 text-gray-300 text-xs italic">Belum ada transaksi diinput.</p>}
-            </div>
-          </div>
-          <button onClick={onInput} className="w-full py-4 bg-purple-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl active:bg-purple-700 mt-4">+ Tambah LPJ Baru</button>
-        </div></div>
-      );
-    }
-
-    function FullReportSidebar({ project, onClose, calcPlan, calcActual, calcItemActual }) {
-      return (
-        <div className="fixed inset-0 z-[50] bg-white flex flex-col animate-slide-left overflow-y-auto">
-          <div className="w-full max-w-md mx-auto min-h-screen p-6">
-            <button onClick={onClose} className="mb-8 text-blue-600 font-black text-[10px] flex items-center gap-2 uppercase no-print"><ArrowLeft size={16}/> Kembali</button>
-            <div id="pdf-report-content" className="space-y-8">
-              <div className="text-center space-y-2 pb-6 border-b-2 border-black">
-                <h1 className="text-2xl font-black uppercase leading-tight">{project.name}</h1>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">{displayDate(project.startDate, project.endDate)}</p>
-                <p className="text-[10px] font-black mt-2">PENANGGUNG JAWAB: {project.owner}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="border border-black p-4 text-center rounded-xl"><p className="text-[9px] font-black uppercase opacity-60">Total Rencana</p><p className="text-lg font-black">{formatRp(calcPlan(project.items))}</p></div>
-                <div className="border border-black p-4 text-center rounded-xl"><p className="text-[9px] font-black uppercase opacity-60">Total Aktual</p><p className="text-lg font-black">{formatRp(calcActual(project.items))}</p></div>
-              </div>
-              <div className="space-y-6">
-                {project.items.map((item, idx) => (
-                  <div key={item.id} className="border-b border-gray-300 pb-4" style={{ pageBreakInside: 'avoid' }}>
-                    <h3 className="font-black text-sm uppercase">{idx + 1}. {item.name}</h3>
-                    <div className="flex justify-between text-[10px] font-bold text-gray-500 mb-2"><span>Alokasi: {formatRp(item.qty * item.budget)}</span><span>Terpakai: {formatRp(calcItemActual(item))}</span></div>
-                    <ul className="space-y-1 mt-2">
-                      {(item.actuals || []).map((a, i) => (<li key={i} className="flex justify-between text-[10px] italic text-gray-700 bg-gray-50 p-2 rounded">- {a.description || 'Tanpa Ket'} <span>{formatRp(a.amount)}</span></li>))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-10 flex justify-between px-6 text-center">
-                <div className="space-y-12"><p className="text-[9px] font-black uppercase">Dibuat Oleh,</p><p className="font-black border-b border-black pb-1 uppercase">{project.owner}</p></div>
-                <div className="space-y-12"><p className="text-[9px] font-black uppercase">Mengetahui,</p><p className="font-black border-b border-black pb-1 uppercase">Pimpinan / HRD</p></div>
-              </div>
-            </div>
-            <button onClick={() => window.print()} className="w-full py-4 mt-10 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl no-print">Cetak Laporan</button>
-          </div>
-        </div>
-      );
-    }
-
-    function AuthScreen({ onLogin }) {
-      const [u, setU] = useState(''); const [p, setP] = useState('');
-      return (
-        <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center">
-            <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-blue-600 shadow-sm"><DollarSign size={40}/></div>
-            <h1 className="text-3xl font-black text-blue-600 uppercase tracking-tighter mb-8">BUDGETpro</h1>
-            <input type="text" placeholder="USERNAME" className="w-full border-2 p-4 rounded-2xl mb-4 font-black text-center outline-none focus:border-blue-500" onChange={e=>setU(e.target.value)} />
-            <input type="password" placeholder="PASSWORD" className="w-full border-2 p-4 rounded-2xl mb-8 font-black text-center outline-none focus:border-blue-500" onChange={e=>setP(e.target.value)} />
-            <button onClick={() => onLogin(u, p)} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase shadow-xl tracking-widest active:scale-95 transition-transform">Masuk</button>
-          </div>
-        </div>
-      );
-    }
-
-    function ConfirmModal({ config, onConfirm, onCancel }) {
-      return (
-        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-6"><div className="bg-white p-8 rounded-[2.5rem] w-full max-w-xs text-center shadow-2xl animate-slide-up">
-          <i className="fa-solid fa-circle-exclamation text-red-500 text-5xl mb-4"></i>
-          <h3 className="font-black uppercase text-sm mb-2">{config.title}</h3>
-          <p className="text-[10px] font-bold text-gray-500 mb-6">{config.message}</p>
-          <div className="flex gap-2"><button onClick={onCancel} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-black uppercase text-[10px]">Batal</button><button onClick={onConfirm} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-black uppercase text-[10px] shadow-lg">Hapus</button></div>
-        </div></div>
       );
     }
 
