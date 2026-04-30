@@ -501,32 +501,36 @@
         };
 
         const handleCreateManual = async () => {
-          if (!formData.name) return alert("Nama Event wajib diisi!");
+  if (!formData.name) return alert("Nama Event wajib diisi!");
 
-          const newProject = {
-              id: Date.now().toString(), // Menggunakan timestamp unik sebagai ID
-              name: formData.name,
-              target: formData.target || '',
-              startDate: formData.startDate,
-              endDate: formData.endDate,
-              owner: currentUser.username, 
-              items: [] // Inisialisasi array items kosong
-          };
+  // Siapkan objek data sesuai dengan kolom di tabel Supabase Anda
+  const newProject = {
+    id: Date.now().toString(),
+    name: formData.name,
+    target: formData.target || '',
+    startDate: formData.startDate,
+    endDate: formData.endDate,
+    owner: currentUser.username,
+    items: [] // Ini akan masuk ke kolom jsonb
+  };
 
-          // Simpan ke Supabase
-          const { error } = await supabase.from('projects').insert([newProject]);
+  // 1. Simpan ke Supabase
+  const { data, error } = await supabase
+    .from('projects')
+    .insert([newProject])
+    .select(); // Mengambil hasil kembalian untuk konfirmasi
 
-          if (error) {
-            console.error("Gagal simpan trip:", error);
-            alert("Gagal menyimpan trip ke server: " + error.message);
-          } else {
-            // Update state lokal agar langsung muncul di dashboard
-            setProjects(prev => [newProject, ...prev]);
-            setActiveProject(newProject);
-            setShowNewProjectModal(false);
-            setCurrentView('project_detail');
-          }
-        };
+  if (error) {
+    console.error("Error Simpan:", error);
+    alert("Gagal simpan ke server: " + error.message);
+  } else {
+    // 2. Jika sukses, update state lokal agar muncul di dashboard
+    setProjects(prev => [newProject, ...prev]);
+    setActiveProject(newProject);
+    setShowNewProjectModal(false);
+    setCurrentView('project_detail');
+  }
+};
 
         return (
           <div className="fixed inset-0 bg-black/70 z-50 flex flex-col justify-end animate-fade-in no-print">
