@@ -1163,14 +1163,14 @@
               <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
                 <button onClick={() => setShowActualModal(false)} className="py-3.5 px-6 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
                 <button 
-                    onClick={() => {
-                    saveActualsToDB(selectedItem.id, actuals); // Nama fungsi yang benar sesuai kode utama
-                    setShowActualModal(false); // Untuk menutup modal setelah simpan
-                }} 
-                className="..."
-                >
-                <CheckCircle size={18} /> Simpan LPJ
-                </button>
+  onClick={() => {
+    saveActualsToDB(selectedItem.id, actuals); // Nama fungsi yang benar sesuai kode utama
+    setShowActualModal(false); // Untuk menutup modal setelah simpan
+  }} 
+  className="..."
+>
+  <CheckCircle size={18} /> Simpan LPJ
+</button>
               </div>
             </div>
           </div>
