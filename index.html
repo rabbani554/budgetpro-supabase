@@ -1163,12 +1163,13 @@
               <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
                 <button onClick={() => setShowActualModal(false)} className="py-3.5 px-6 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
                 <button 
-                  onClick={() => {
-                    handleSaveActuals(selectedItem.id, actuals);
-                  }} 
-                  className="flex-1 py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-[0_4px_14px_rgba(147,51,234,0.39)] active:bg-purple-700 flex justify-center items-center gap-2"
+                    onClick={() => {
+                    saveActualsToDB(selectedItem.id, actuals); // Nama fungsi yang benar sesuai kode utama
+                    setShowActualModal(false); // Untuk menutup modal setelah simpan
+                }} 
+                className="..."
                 >
-                  <CheckCircle size={18} /> Simpan LPJ
+                <CheckCircle size={18} /> Simpan LPJ
                 </button>
               </div>
             </div>
