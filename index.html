@@ -251,42 +251,43 @@
       };
 
       const saveActualsToDB = async (itemId, newActuals) => {
-        // 1. Cari item yang sedang diedit
-        const item = activeProject.items.find(i => i.id === itemId);
-        const plannedTotal = item.qty * item.budget;
-        const actualTotal = newActuals.reduce((sum, act) => sum + Number(act.amount), 0);
-        
-        // 2. Tentukan status berdasarkan nominal
-        let status = 'pending';
-        if (newActuals.length > 0) {
-          status = 'on-budget';
-          if (actualTotal < plannedTotal) status = 'under-budget';
-          if (actualTotal > plannedTotal) status = 'over-budget';
-        }
+  // Pastikan kita tidak memproses jika data project belum siap
+  if (!activeProject || !activeProject.items) return;
 
-        // 3. Update daftar items dalam project
-        const updatedItems = activeProject.items.map(i => {
-          if (i.id === itemId) return { ...i, actuals: newActuals, status };
-          return i;
-        });
+  // 1. Hitung total berdasarkan data TERBARU dari modal (bukan dari state lama)
+  const plannedItem = activeProject.items.find(i => i.id === itemId);
+  const plannedTotal = plannedItem.qty * plannedItem.budget;
+  const actualTotal = newActuals.reduce((sum, act) => sum + Number(act.amount), 0);
+  
+  // 2. Tentukan status
+  let status = 'pending';
+  if (newActuals.length > 0) {
+    status = actualTotal > plannedTotal ? 'over-budget' : (actualTotal < plannedTotal ? 'under-budget' : 'on-budget');
+  }
 
-        // 4. Kirim update ke Supabase
-        const { error } = await supabase
-          .from('projects')
-          .update({ items: updatedItems })
-          .eq('id', activeProject.id);
-        
-        if (error) {
-          alert("Gagal menyimpan ke server: " + error.message);
-        } else {
-          // Update state lokal agar UI langsung berubah
-          const updatedProject = { ...activeProject, items: updatedItems };
-          setActiveProject(updatedProject);
-          if (selectedItem && selectedItem.id === itemId) {
-              setSelectedItem({ ...item, actuals: newActuals, status });
-          }
-        }
-      };
+  // 3. Buat array items baru dengan data aktual yang baru saja diinput
+  const updatedItems = activeProject.items.map(i => {
+    if (i.id === itemId) {
+      return { ...i, actuals: newActuals, status: status };
+    }
+    return i;
+  });
+
+  // 4. Update ke Supabase
+  const { error } = await supabase
+    .from('projects')
+    .update({ items: updatedItems })
+    .eq('id', activeProject.id);
+
+  if (error) {
+    console.error("Gagal simpan:", error);
+    alert("Gagal simpan ke server");
+  } else {
+    // 5. CRITICAL: Update state lokal agar UI langsung berubah tanpa refresh
+    setActiveProject(prev => ({ ...prev, items: updatedItems }));
+    setProjects(prevProj => prevProj.map(p => p.id === activeProject.id ? { ...p, items: updatedItems } : p));
+  }
+};
 
       // --- Computations ---
       const getItemActualTotal = (item) => {
@@ -1128,16 +1129,19 @@
       <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0 pb-10">
         <button onClick={() => setShowActualModal(false)} className="py-3.5 px-6 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
         <button 
-          onClick={async () => {
-            // Gunakan await agar proses simpan selesai sebelum modal tutup
-            await saveActualsToDB(selectedItem.id, actuals);
-            setShowActualModal(false);
-          }} 
-          className="flex-1 py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-xl active:bg-purple-700 flex justify-center items-center gap-2"
-        >
-          <i className="fa-solid fa-circle-check"></i> Simpan LPJ
-        </button>
-      </div>
+  onClick={async () => {
+    // Pastikan kita mengirim variabel 'actuals' yang berisi daftar transaksi di modal
+    if (actuals.length === 0) {
+      if (!confirm("Belum ada transaksi diinput, simpan sebagai kosong?")) return;
+    }
+    
+    await saveActualsToDB(selectedItem.id, actuals);
+    setShowActualModal(false); 
+  }} 
+  className="flex-1 py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-xl active:bg-purple-700"
+>
+  <CheckCircle size={18} /> Simpan LPJ
+</button>
             </div>
           </div>
         );
