@@ -501,19 +501,31 @@
         };
 
         const handleCreateManual = async () => {
+          if (!formData.name) return alert("Nama Event wajib diisi!");
+
           const newProject = {
-              id: Date.now().toString(),
-              name: formData.name || 'Project / Event Baru',
+              id: Date.now().toString(), // Menggunakan timestamp unik sebagai ID
+              name: formData.name,
               target: formData.target || '',
               startDate: formData.startDate,
               endDate: formData.endDate,
               owner: currentUser.username, 
-              items: []
+              items: [] // Inisialisasi array items kosong
           };
-          await supabase.from('projects').insert([newProject]);
-          setActiveProject(newProject);
-          setShowNewProjectModal(false);
-          setCurrentView('project_detail');
+
+          // Simpan ke Supabase
+          const { error } = await supabase.from('projects').insert([newProject]);
+
+          if (error) {
+            console.error("Gagal simpan trip:", error);
+            alert("Gagal menyimpan trip ke server: " + error.message);
+          } else {
+            // Update state lokal agar langsung muncul di dashboard
+            setProjects(prev => [newProject, ...prev]);
+            setActiveProject(newProject);
+            setShowNewProjectModal(false);
+            setCurrentView('project_detail');
+          }
         };
 
         return (
