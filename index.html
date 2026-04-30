@@ -998,9 +998,7 @@
           let finalUrl = receiptUrl;
 
           try {
-            // Jika ada foto, upload ke Supabase Storage
             if (receiptUrl && receiptUrl.startsWith('data:')) {
-              // Mengubah Base64 ke Blob File
               const res = await fetch(receiptUrl);
               const blob = await res.blob();
               const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}.jpg`;
@@ -1010,7 +1008,6 @@
               });
               
               if (error) throw error;
-
               const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
               finalUrl = publicUrlData.publicUrl;
             }
@@ -1026,22 +1023,11 @@
             setNewDesc('');
             setReceiptUrl(null);
           } catch (error) {
-            alert("Gagal mengunggah foto. Pastikan pengaturan Supabase Storage Anda sudah terbuka untuk publik.");
+            alert("Gagal mengunggah foto.");
             console.error(error);
           }
           setIsUploading(false);
         };
-
-        const handleRemoveTransaction = (id) => {
-          triggerDelete('transaction', { itemId: selectedItem.id, trxId: id, currentActuals: actuals }, 'Hapus Bukti Transaksi?', 'Riwayat nominal dan struk ini akan dihapus. Yakin?');
-        };
-
-        useEffect(() => {
-           if(selectedItem && activeProject) {
-             const updatedItem = activeProject.items.find(i => i.id === selectedItem.id);
-             if(updatedItem) setActuals(updatedItem.actuals);
-           }
-        }, [activeProject]);
 
         return (
           <div className="fixed inset-0 bg-black/70 z-[40] flex flex-col justify-end animate-fade-in no-print">
@@ -1056,12 +1042,12 @@
               
               <div className="p-6 overflow-y-auto space-y-6">
                 <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold text-gray-500 uppercase">Budget</span>
+                  <div className="flex justify-between items-center mb-2 text-xs">
+                    <span className="font-bold text-gray-500 uppercase">Budget</span>
                     <span className="font-bold text-gray-800">{formatRp(plannedTotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-bold text-gray-500 uppercase">Total Terpakai</span>
+                  <div className="flex justify-between items-center mb-2 text-xs">
+                    <span className="font-bold text-gray-500 uppercase">Total Terpakai</span>
                     <span className="font-bold text-purple-700">{formatRp(draftTotal)}</span>
                   </div>
                   <div className={`pt-2 border-t border-purple-200 flex justify-between items-center text-xs font-bold ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -1071,106 +1057,72 @@
                 </div>
 
                 {actuals.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Daftar Transaksi</h4>
-                    <div className="space-y-3">
-                      {actuals.map((act) => (
-                        <div key={act.id} className="bg-white border border-gray-200 rounded-xl p-3 flex gap-3 items-center shadow-sm">
-                           {act.receiptUrl ? (
-                             <img src={act.receiptUrl} className="w-12 h-12 rounded-lg object-cover bg-gray-100" alt="struk"/>
-                           ) : (
-                             <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
-                               <FileText size={20}/>
-                             </div>
-                           )}
-                           <div className="flex-1 min-w-0">
-                             <p className="font-bold text-gray-800 text-sm">{formatRp(act.amount)}</p>
-                             {act.description && <p className="text-xs text-gray-500 truncate">{act.description}</p>}
-                           </div>
-                           <button onClick={() => handleRemoveTransaction(act.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors">
-                             <Trash2 size={16}/>
-                           </button>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="space-y-3">
+                    {actuals.map((act) => (
+                      <div key={act.id} className="bg-white border border-gray-200 rounded-xl p-3 flex gap-3 items-center shadow-sm">
+                         <div className="flex-1 min-w-0">
+                           <p className="font-bold text-gray-800 text-sm">{formatRp(act.amount)}</p>
+                           <p className="text-xs text-gray-500 truncate">{act.description}</p>
+                         </div>
+                         <button onClick={() => setActuals(actuals.filter(a => a.id !== act.id))} className="p-2 text-red-500">
+                           <Trash2 size={16}/>
+                         </button>
+                      </div>
+                    ))}
                   </div>
                 )}
 
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                  <h4 className="text-xs font-bold text-gray-700 uppercase mb-4 flex items-center gap-1">
-                    <Plus size={14}/> Tambah Transaksi
-                  </h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Nominal (Rp)</label>
-                      <input 
-                        type="text" 
-                        inputMode="numeric"
-                        className="w-full border-2 border-gray-200 rounded-xl p-3 text-lg font-black text-gray-800 focus:border-purple-500 outline-none bg-white"
-                        value={newAmount} 
-                        onChange={e => {
-                          const rawValue = e.target.value.replace(/\D/g, ''); 
-                          if (rawValue === '') setNewAmount('');
-                          else setNewAmount(parseInt(rawValue, 10).toLocaleString('id-ID'));
-                        }} 
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Keterangan (Makan Siang, dll)</label>
-                      <input 
-                        type="text" 
-                        className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-purple-500 outline-none bg-white"
-                        value={newDesc} 
-                        onChange={e => setNewDesc(e.target.value)} 
-                        placeholder="Opsional..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2">Foto Bukti / Nota</label>
-                      {receiptUrl ? (
-                        <div className="relative rounded-xl overflow-hidden border-2 border-gray-200 h-32">
-                          <img src={receiptUrl} alt="Bukti" className="w-full h-full object-cover" />
-                          <button onClick={() => setReceiptUrl(null)} className="absolute top-2 right-2 bg-red-500/90 text-white p-2 rounded-full backdrop-blur-sm">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-2">
-                          <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white hover:bg-gray-50 transition-colors">
-                            <Camera size={16} className="text-purple-600" />
-                            <span className="text-xs font-bold text-gray-600">Kamera</span>
-                            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
-                          </label>
-                          <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white hover:bg-gray-50 transition-colors">
-                            <Upload size={16} className="text-purple-600" />
-                            <span className="text-xs font-bold text-gray-600">Galeri</span>
-                            <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} />
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                    <button 
-                      onClick={handleAddTransaction}
-                      disabled={!newAmount || Number(newAmount.replace(/\./g, '')) <= 0 || isUploading}
-                      className="w-full py-3 bg-purple-100 text-purple-700 rounded-xl font-bold text-sm disabled:opacity-50 disabled:bg-gray-100 disabled:text-gray-400 active:bg-purple-200"
-                    >
-                      {isUploading ? (<span><i className="fa-solid fa-spinner fa-spin mr-2"></i> Mengunggah Foto...</span>) : '+ Tambah ke Daftar'}
-                    </button>
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-4">
+                  <input 
+                    type="text" 
+                    inputMode="numeric"
+                    className="w-full border-2 border-gray-200 rounded-xl p-3 text-lg font-black text-gray-800 focus:border-purple-500 outline-none"
+                    value={newAmount} 
+                    onChange={e => {
+                      const raw = e.target.value.replace(/\D/g, ''); 
+                      setNewAmount(raw === '' ? '' : parseInt(raw).toLocaleString('id-ID'));
+                    }} 
+                    placeholder="Nominal (Rp)"
+                  />
+                  <input 
+                    type="text" 
+                    className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-purple-500 outline-none"
+                    value={newDesc} 
+                    onChange={e => setNewDesc(e.target.value)} 
+                    placeholder="Keterangan..."
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600">
+                      <Camera size={16} className="text-purple-600" /> Kamera
+                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+                    </label>
+                    <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600">
+                      <Upload size={16} className="text-purple-600" /> Galeri
+                      <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                    </label>
                   </div>
+                  <button 
+                    onClick={handleAddTransaction}
+                    disabled={!newAmount || isUploading}
+                    className="w-full py-3 bg-purple-100 text-purple-700 rounded-xl font-bold text-sm disabled:opacity-50"
+                  >
+                    {isUploading ? 'Mengunggah...' : '+ Tambah ke Daftar'}
+                  </button>
                 </div>
               </div>
-              <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0">
+
+              {/* FOOTER TOMBOL YANG DIPERBAIKI UI-NYA */}
+              <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0 pb-8">
                 <button onClick={() => setShowActualModal(false)} className="py-3.5 px-6 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
                 <button 
-  onClick={() => {
-    saveActualsToDB(selectedItem.id, actuals); // Nama fungsi yang benar sesuai kode utama
-    setShowActualModal(false); // Untuk menutup modal setelah simpan
-  }} 
-  className="..."
->
-  <CheckCircle size={18} /> Simpan LPJ
-</button>
+                  onClick={async () => {
+                    await saveActualsToDB(selectedItem.id, actuals);
+                    setShowActualModal(false);
+                  }} 
+                  className="flex-1 py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-xl active:bg-purple-700 flex justify-center items-center gap-2"
+                >
+                  <CheckCircle size={18} /> Simpan LPJ
+                </button>
               </div>
             </div>
           </div>
