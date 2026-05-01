@@ -744,116 +744,172 @@
         );
       };
 
-      const Dashboard = () => (
-        <div className="pb-24 animate-fade-in">
-          <div className="bg-blue-600 rounded-b-3xl p-6 text-white shadow-md relative overflow-hidden">
-            <div className="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4">
-              <DollarSign size={120} />
-            </div>
-            
-            <div className="relative z-10 flex justify-between items-start mb-3">
-              <div>
-                <h1 className="text-2xl font-bold leading-none mb-1">BUDGETpro</h1>
-                <div className="flex items-center gap-2 text-blue-100 text-sm">
-                  <UserIcon size={12} />
-                  <span>Halo, <strong className="text-white capitalize">{currentUser.username}</strong></span>
-                  <span className="bg-blue-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">{currentUser.role}</span>
-                </div>
-              </div>
-              <button onClick={handleLogout} className="w-10 h-10 bg-blue-700 text-blue-100 hover:text-white rounded-full flex items-center justify-center shadow-sm active:bg-blue-800 transition-colors" title="Keluar">
-                <LogOutIcon size={16} />
-              </button>
-            </div>
-            
-            <p className="text-blue-100 text-[11px] leading-snug relative z-10 italic pr-4">
-              "semoga membantu kamu mempertanggungjawabkan budget yang sudah dibuat"
-              <span className="block mt-1 font-bold not-italic text-[10px] text-blue-200 tracking-wider">by RBN ;D</span>
-            </p>
-          </div>
+      const Dashboard = () => {
+        const [activeFilter, setActiveFilter] = useState('semua');
 
-          <div className="p-4 mt-2">
-            <div className="flex justify-between items-end mb-4">
-              <h2 className="font-bold text-gray-700 flex items-center gap-2">
-                <FileText size={18} /> Daftar Trip / Event
-              </h2>
-              {currentUser.role === 'admin' && (
-                <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-1 rounded font-bold uppercase">Semua User</span>
-              )}
+        // Grand total dari semua project yang ditampilkan
+        const grandPlan   = displayedProjects.reduce((s, p) => s + calculateTotalPlan(p.items), 0);
+        const grandActual = displayedProjects.reduce((s, p) => s + calculateTotalActual(p.items), 0);
+        const grandVar    = grandPlan - grandActual;
+
+        const chips = [
+          { id: 'semua',   label: 'Semua' },
+          { id: 'selesai', label: 'Selesai' },
+          { id: 'pending', label: 'Pending' },
+        ];
+
+        const filteredProjects = displayedProjects.filter(proj => {
+          const done = proj.items.length > 0 && proj.items.every(i => i.status !== 'pending');
+          if (activeFilter === 'selesai') return done;
+          if (activeFilter === 'pending') return !done;
+          return true;
+        });
+
+        return (
+          <div style={{ paddingBottom: 100, background: 'var(--bg)', minHeight: '100vh' }}>
+
+            {/* ── Header ── */}
+            <div style={{ background: 'linear-gradient(135deg, var(--purple) 0%, #9B8FF8 100%)', padding: '48px 20px 56px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', margin: 0 }}>Halo,</p>
+                <p style={{ fontSize: 24, fontWeight: 700, color: 'white', margin: '2px 0 0' }}>{currentUser.username}!</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'white', textTransform: 'uppercase' }}>
+                  {currentUser.username.charAt(0)}
+                </div>
+                <button onClick={handleLogout} title="Keluar" style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 16 }} />
+                </button>
+              </div>
             </div>
-            
-            <div className="space-y-4">
-              {displayedProjects.map(proj => {
-                const totalPlan = calculateTotalPlan(proj.items);
+
+            {/* ── Summary Card (floating) ── */}
+            <div style={{ margin: '-28px 16px 0', background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--radius-card)', padding: 16, display: 'grid', gridTemplateColumns: '1fr 1px 1fr 1px 1fr', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+              <div style={{ textAlign: 'center', padding: '0 8px' }}>
+                <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 0 4px' }}>Rencana</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0, wordBreak: 'break-all' }}>{formatRp(grandPlan)}</p>
+              </div>
+              <div style={{ background: 'var(--border)', width: 1, alignSelf: 'center', height: 40 }} />
+              <div style={{ textAlign: 'center', padding: '0 8px' }}>
+                <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 0 4px' }}>Terpakai</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--purple)', margin: 0, wordBreak: 'break-all' }}>{formatRp(grandActual)}</p>
+              </div>
+              <div style={{ background: 'var(--border)', width: 1, alignSelf: 'center', height: 40 }} />
+              <div style={{ textAlign: 'center', padding: '0 8px' }}>
+                <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 0 4px' }}>{grandVar >= 0 ? 'Sisa' : 'Over'}</p>
+                <p style={{ fontSize: 16, fontWeight: 700, color: grandVar >= 0 ? 'var(--green)' : 'var(--red)', margin: 0, wordBreak: 'break-all' }}>{formatRp(Math.abs(grandVar))}</p>
+              </div>
+            </div>
+
+            {/* ── Filter Chips ── */}
+            <div style={{ margin: '16px 16px 8px', display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
+              {chips.map(chip => (
+                <button key={chip.id} onClick={() => setActiveFilter(chip.id)} style={{
+                  background: activeFilter === chip.id ? 'var(--purple)' : 'var(--surface-2)',
+                  border: `1px solid ${activeFilter === chip.id ? 'var(--purple)' : 'var(--border)'}`,
+                  borderRadius: 99, padding: '6px 14px', fontSize: 13, whiteSpace: 'nowrap',
+                  cursor: 'pointer', color: activeFilter === chip.id ? 'white' : 'var(--text-2)',
+                  fontFamily: 'inherit', fontWeight: activeFilter === chip.id ? 600 : 400, transition: '0.15s'
+                }}>{chip.label}</button>
+              ))}
+            </div>
+
+            {/* ── Project list ── */}
+            <div style={{ marginTop: 8 }}>
+              {filteredProjects.map(proj => {
+                const totalPlan   = calculateTotalPlan(proj.items);
                 const totalActual = calculateTotalActual(proj.items);
-                const variance = totalPlan - totalActual;
-                const isComplete = proj.items.length > 0 && proj.items.every(i => i.status !== 'pending');
+                const variance    = totalPlan - totalActual;
+                const allPending  = proj.items.length === 0 || proj.items.every(i => i.status === 'pending');
+                const hasOver     = proj.items.some(i => i.status === 'over-budget');
+                const isComplete  = proj.items.length > 0 && proj.items.every(i => i.status !== 'pending');
+
+                let accentColor = 'var(--text-3)';
+                let progressColor = 'var(--text-3)';
+                let badgeClass = 'badge-pending';
+                let badgeLabel = 'Pending';
+
+                if (!allPending) {
+                  if (hasOver)       { accentColor = 'var(--red)';    progressColor = 'var(--red)';    badgeClass = 'badge-over';   badgeLabel = 'Over Budget'; }
+                  else if (isComplete){ accentColor = 'var(--green)'; progressColor = 'var(--green)';  badgeClass = 'badge-under';  badgeLabel = 'Selesai'; }
+                  else               { accentColor = 'var(--purple)'; progressColor = 'var(--purple)'; badgeClass = 'badge-on';     badgeLabel = 'On Track'; }
+                }
+
+                const progressPct = totalPlan > 0 ? Math.min((totalActual / totalPlan) * 100, 100) : 0;
 
                 return (
-                  <div 
-                    key={proj.id} 
+                  <div
+                    key={proj.id}
                     onClick={() => { setActiveProject(proj); setCurrentView('project_detail'); }}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:scale-[0.98] transition-transform cursor-pointer relative overflow-hidden"
+                    style={{ margin: '0 16px 12px', background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--radius-card)', overflow: 'hidden', cursor: 'pointer', display: 'flex', transition: 'transform 0.1s' }}
+                    onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+                    onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
+                    onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
                   >
-                    {/* Badge Owner Khusus Tampilan Admin */}
-                    {currentUser.role === 'admin' && (
-                       <div className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold uppercase w-max mb-2">
-                         Oleh: {proj.owner}
-                       </div>
-                    )}
+                    {/* Left accent bar */}
+                    <div style={{ width: 4, background: accentColor, flexShrink: 0 }} />
 
-                    <div className="flex justify-between items-start mb-2 pr-6">
-                      <h3 className="font-bold text-gray-800 line-clamp-2 leading-tight">{proj.name}</h3>
-                    </div>
-                    
-                    <div className="absolute top-4 right-4">
-                      {isComplete ? (
-                        <div className="bg-green-100 text-green-600 p-1.5 rounded-full"><CheckCircle size={16} /></div>
-                      ) : (
-                        <div className="bg-orange-100 text-orange-500 p-1.5 rounded-full"><AlertCircle size={16} /></div>
+                    {/* Content */}
+                    <div style={{ flex: 1, padding: '14px 14px 14px 12px', minWidth: 0 }}>
+                      {/* Row 1: nama + badge */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                        <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-1)', margin: 0, lineHeight: 1.3, flex: 1 }}>{proj.name}</p>
+                        <span className={`badge-base ${badgeClass}`} style={{ flexShrink: 0 }}>{badgeLabel}</span>
+                      </div>
+
+                      {/* Row 2: tanggal */}
+                      <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <i className="fa-solid fa-calendar-day" style={{ fontSize: 11 }} />
+                        {displayDate(proj.startDate, proj.endDate)} · {proj.items.length} item
+                      </p>
+
+                      {/* Row 3: owner (admin, bukan punya sendiri) */}
+                      {currentUser.role === 'admin' && proj.owner !== currentUser.username && (
+                        <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '2px 0 0' }}>by @{proj.owner}</p>
                       )}
-                    </div>
 
-                    <p className="text-xs text-gray-500 mb-4 flex items-center gap-1">
-                      <FAIcon name="calendar-day" size={12} className="mr-1" />
-                      {displayDate(proj.startDate, proj.endDate)} • {proj.items.length} Item
-                    </p>
-                    
-                    <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Rencana:</span>
-                        <span className="font-semibold text-gray-700">{formatRp(totalPlan)}</span>
+                      {/* Row 4: progress bar */}
+                      <div className="progress-track" style={{ marginTop: 10, marginBottom: 8 }}>
+                        <div className="progress-fill" style={{ width: `${progressPct}%`, background: progressColor }} />
                       </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-500">Terpakai:</span>
-                        <span className="font-semibold text-gray-700">{formatRp(totalActual)}</span>
-                      </div>
-                      <div className={`flex justify-between text-xs font-bold pt-2 border-t border-gray-200 mt-2 ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        <span>{variance >= 0 ? 'Sisa:' : 'Over:'}</span>
-                        <span>{formatRp(Math.abs(variance))}</span>
+
+                      {/* Row 5: terpakai + variance */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <p style={{ fontSize: 12, color: 'var(--text-2)', margin: 0 }}>Terpakai: {formatRp(totalActual)}</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: variance >= 0 ? 'var(--green)' : 'var(--red)', margin: 0 }}>
+                          {variance >= 0 ? 'Sisa' : 'Over'}: {formatRp(Math.abs(variance))}
+                        </p>
                       </div>
                     </div>
                   </div>
                 );
               })}
-              
-              {displayedProjects.length === 0 && (
-                <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-dashed border-gray-200">
-                  <FileText size={48} className="mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">Belum ada project.</p>
-                  {currentUser.role !== 'admin' && <p className="text-xs mt-1">Tap tombol + di bawah untuk membuat.</p>}
+
+              {/* Empty state */}
+              {filteredProjects.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ margin: '0 auto', display: 'block' }}>
+                    <rect x="10" y="18" width="44" height="34" rx="5" stroke="var(--text-3)" strokeWidth="2" fill="none"/>
+                    <path d="M22 30h20M22 38h14" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M24 18v-3a8 8 0 0116 0v3" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: '16px 0 0' }}>Belum ada trip</p>
+                  <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '4px 0 0' }}>
+                    {activeFilter === 'semua' ? 'Buat trip pertamamu sekarang' : `Tidak ada trip dengan filter "${activeFilter}"`}
+                  </p>
                 </div>
               )}
             </div>
-          </div>
 
-          <button 
-            onClick={() => setShowNewProjectModal(true)}
-            className="fixed bottom-6 right-1/2 translate-x-1/2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-full flex items-center gap-2 shadow-[0_8px_16px_rgba(37,99,235,0.3)] transition-colors z-30 font-semibold text-sm w-max no-print"
-          >
-            <Plus size={20} /> Buat Trip Baru
-          </button>
-        </div>
-      );
+            {/* ── FAB ── */}
+            <button className="fab no-print" onClick={() => setShowNewProjectModal(true)}>
+              <i className="fa-solid fa-plus" /> Trip Baru
+            </button>
+          </div>
+        );
+      };
 
       const ProjectDetail = () => {
         const totalPlan = calculateTotalPlan(activeProject.items);
