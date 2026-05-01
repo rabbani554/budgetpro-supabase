@@ -26,6 +26,70 @@
 
   <!-- SUPABASE SDK (Menggantikan Firebase) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Google Fonts: DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Design System -->
+  <style>
+    :root {
+      --bg: #FAF8F4;
+      --surface: #FFFFFF;
+      --surface-2: #F3EFE8;
+      --border: #EEEBE4;
+      --green: #2DBE8C;
+      --purple: #7C6FF7;
+      --yellow: #F5C842;
+      --red: #F25C5C;
+      --text-1: #1A1A1A;
+      --text-2: #6B6B6B;
+      --text-3: #A0A0A0;
+      --radius-card: 20px;
+      --radius-pill: 99px;
+      --radius-btn: 14px;
+    }
+
+    /* Status badge */
+    .badge-pending  { background: #F3EFE8; color: #A0A0A0; }
+    .badge-under    { background: #E1F9F0; color: #0F6E56; }
+    .badge-on       { background: #E6F1FB; color: #185FA5; }
+    .badge-over     { background: #FCEBEB; color: #A32D2D; }
+    .badge-base     { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; display: inline-block; }
+
+    /* Animasi modal */
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes slideLeft {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
+    .animate-slide-up   { animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
+    .animate-slide-left { animation: slideLeft 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+    /* Progress bar */
+    .progress-track { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .progress-fill  { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+
+    /* Desktop wrapper */
+    #root { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--bg); }
+
+    /* FAB */
+    .fab {
+      position: fixed; bottom: 24px; right: calc(50% - 215px + 16px);
+      background: var(--yellow); border-radius: 99px;
+      padding: 14px 20px; font-weight: 700; font-size: 15px;
+      color: #1A1A1A; border: none; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(245,200,66,0.4);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); }
+
+    ::-webkit-scrollbar { width: 0px; background: transparent; }
+  </style>
 </head>
 <body class="bg-gray-200">
   <div id="root"></div>
