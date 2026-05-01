@@ -212,6 +212,8 @@
         
         if (type === 'project') {
           await supabase.from('projects').delete().eq('id', payload);
+          setProjects(prev => prev.filter(p => p.id !== payload));
+          setActiveProject(null);
           setCurrentView('dashboard');
         } 
         else if (type === 'item') {
