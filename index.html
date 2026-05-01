@@ -372,32 +372,32 @@
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Username</label>
+                  <label htmlFor="auth-username" className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Username</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                       <UserIcon size={16} />
                     </div>
-                    <input type="text" value={username} onChange={e=>setUsername(e.target.value)}
-                      className="w-full border-2 border-gray-200 rounded-xl pl-10 p-3 text-sm focus:border-blue-500 outline-none font-bold text-gray-800" 
-                      placeholder="Masukkan username" />
+                    <input id="auth-username" name="username" type="text" value={username} onChange={e=>setUsername(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl pl-10 p-3 text-sm focus:border-blue-500 outline-none font-bold text-gray-800"
+                      placeholder="Masukkan username" autoComplete="username" />
                   </div>
                 </div>
-                
+
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Password</label>
+                  <label htmlFor="auth-password" className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Password</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                       <LockIcon size={16} />
                     </div>
-                    <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
-                      className="w-full border-2 border-gray-200 rounded-xl pl-10 p-3 text-sm focus:border-blue-500 outline-none font-bold text-gray-800" 
-                      placeholder="Masukkan password" />
+                    <input id="auth-password" name="password" type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                      className="w-full border-2 border-gray-200 rounded-xl pl-10 p-3 text-sm focus:border-blue-500 outline-none font-bold text-gray-800"
+                      placeholder="Masukkan password" autoComplete="current-password" />
                   </div>
                 </div>
 
                 {!isLoginView && (
                   <label className="flex items-center gap-2 p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50">
-                    <input type="checkbox" checked={isAdminReg} onChange={e=>setIsAdminReg(e.target.checked)} className="w-4 h-4 text-blue-600 rounded" />
+                    <input id="reg-admin" name="reg-admin" type="checkbox" checked={isAdminReg} onChange={e=>setIsAdminReg(e.target.checked)} className="w-4 h-4 text-blue-600 rounded" />
                     <span className="text-xs font-bold text-gray-700">Daftar sebagai Admin HR/Finance</span>
                   </label>
                 )}
@@ -549,27 +549,27 @@
               
               <div className="p-6 overflow-y-auto space-y-5">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Event</label>
-                  <input type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                  <label htmlFor="proj-name" className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Event</label>
+                  <input id="proj-name" name="proj-name" type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
                     value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Perjalanan Dinas JKT" />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Mulai</label>
-                    <input type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    <label htmlFor="proj-start" className="block text-xs font-bold text-gray-500 uppercase mb-2">Mulai</label>
+                    <input id="proj-start" name="proj-start" type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
                       value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Selesai</label>
-                    <input type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    <label htmlFor="proj-end" className="block text-xs font-bold text-gray-500 uppercase mb-2">Selesai</label>
+                    <input id="proj-end" name="proj-end" type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
                       value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Target (Opsional)</label>
-                  <textarea className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
+                  <label htmlFor="proj-target" className="block text-xs font-bold text-gray-500 uppercase mb-2">Target (Opsional)</label>
+                  <textarea id="proj-target" name="proj-target" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
                     rows="2" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} placeholder="Tujuan perjalanan..." />
                 </div>
 
@@ -960,25 +960,25 @@
               
               <div className="p-6 space-y-5 pb-8">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Item / Pengeluaran</label>
-                  <input type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                  <label htmlFor="item-name" className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Item / Pengeluaran</label>
+                  <input id="item-name" name="item-name" type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
                     value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Cth: Tiket Pesawat, Hotel..." />
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Jml / Qty</label>
-                    <input type="number" min="1" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    <label htmlFor="item-qty" className="block text-xs font-bold text-gray-500 uppercase mb-2">Jml / Qty</label>
+                    <input id="item-qty" name="item-qty" type="number" min="1" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
                       value={formData.qty || ''} onChange={e => setFormData({...formData, qty: Number(e.target.value)})} />
                   </div>
                   <div className="flex-[2]">
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Satuan</label>
-                    <input type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    <label htmlFor="item-unit" className="block text-xs font-bold text-gray-500 uppercase mb-2">Satuan</label>
+                    <input id="item-unit" name="item-unit" type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
                       value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="org / mlm / tiket" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Budget Satuan (Rp)</label>
-                  <input type="number" className="w-full border-2 border-gray-200 rounded-xl p-3 text-base font-bold focus:border-blue-500 outline-none"
+                  <label htmlFor="item-budget" className="block text-xs font-bold text-gray-500 uppercase mb-2">Budget Satuan (Rp)</label>
+                  <input id="item-budget" name="item-budget" type="number" className="w-full border-2 border-gray-200 rounded-xl p-3 text-base font-bold focus:border-blue-500 outline-none"
                     value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} placeholder="0" />
                 </div>
                 <div className="bg-blue-50 p-4 rounded-2xl flex justify-between items-center">
@@ -986,8 +986,8 @@
                   <span className="font-black text-xl text-blue-700">{formatRp((formData.qty || 0) * (formData.budget || 0))}</span>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Catatan Tambahan (Opsional)</label>
-                  <textarea className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
+                  <label htmlFor="item-notes" className="block text-xs font-bold text-gray-500 uppercase mb-2">Catatan Tambahan (Opsional)</label>
+                  <textarea id="item-notes" name="item-notes" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
                     rows="2" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Untuk siapa/keperluan spesifik..." />
                 </div>
                 <div className="flex gap-3 pt-4">
@@ -1115,40 +1115,82 @@
         )}
 
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-4">
-                  <input 
-                    type="text" 
-                    inputMode="numeric"
-                    className="w-full border-2 border-gray-200 rounded-xl p-3 text-lg font-black text-gray-800 focus:border-purple-500 outline-none"
-                    value={newAmount} 
-                    onChange={e => {
-                      const raw = e.target.value.replace(/\D/g, ''); 
-                      setNewAmount(raw === '' ? '' : parseInt(raw).toLocaleString('id-ID'));
-                    }} 
-                    placeholder="Nominal (Rp)"
-                  />
-                  <input 
-                    type="text" 
-                    className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-purple-500 outline-none"
-                    value={newDesc} 
-                    onChange={e => setNewDesc(e.target.value)} 
-                    placeholder="Keterangan..."
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600">
-                      <Camera size={16} className="text-purple-600" /> Kamera
-                      <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
-                    </label>
-                    <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600">
-                      <Upload size={16} className="text-purple-600" /> Galeri
-                      <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                    </label>
+                  <div>
+                    <label htmlFor="trx-amount" className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Nominal (Rp)</label>
+                    <input
+                      id="trx-amount"
+                      name="trx-amount"
+                      type="text"
+                      inputMode="numeric"
+                      className="w-full border-2 border-gray-200 rounded-xl p-3 text-lg font-black text-gray-800 focus:border-purple-500 outline-none"
+                      value={newAmount}
+                      onChange={e => {
+                        const raw = e.target.value.replace(/\D/g, '');
+                        setNewAmount(raw === '' ? '' : parseInt(raw).toLocaleString('id-ID'));
+                      }}
+                      placeholder="0"
+                    />
                   </div>
-                  <button 
+                  <div>
+                    <label htmlFor="trx-desc" className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Keterangan</label>
+                    <input
+                      id="trx-desc"
+                      name="trx-desc"
+                      type="text"
+                      className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-purple-500 outline-none"
+                      value={newDesc}
+                      onChange={e => setNewDesc(e.target.value)}
+                      placeholder="Cth: Bayar tol, makan siang..."
+                    />
+                  </div>
+
+                  {/* Preview Foto — tampil saat foto sudah dipilih, gantikan tombol kamera/galeri */}
+                  {receiptUrl ? (
+                    <div className="relative rounded-xl overflow-hidden border-2 border-purple-300 shadow-sm">
+                      <img src={receiptUrl} className="w-full h-48 object-cover" alt="preview foto struk" />
+                      <div className="absolute top-2 left-2 bg-green-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 shadow">
+                        <FAIcon name="circle-check" size={10} /> Foto siap diunggah
+                      </div>
+                      <button
+                        onClick={() => setReceiptUrl(null)}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:bg-red-600"
+                        aria-label="Hapus foto yang dipilih"
+                      >
+                        <FAIcon name="xmark" size={14} />
+                      </button>
+                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent px-3 py-2">
+                        <p className="text-white text-[10px] font-medium">Tap ✕ untuk ganti foto</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">Foto Struk (Opsional)</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600 active:bg-purple-50 active:border-purple-400 transition-colors">
+                          <Camera size={16} className="text-purple-600" /> Kamera
+                          <input id="receipt-camera" name="receipt-camera" type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+                        </label>
+                        <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600 active:bg-purple-50 active:border-purple-400 transition-colors">
+                          <Upload size={16} className="text-purple-600" /> Galeri
+                          <input id="receipt-gallery" name="receipt-gallery" type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
                     onClick={handleAddTransaction}
                     disabled={!newAmount || isUploading}
-                    className="w-full py-3 bg-purple-100 text-purple-700 rounded-xl font-bold text-sm disabled:opacity-50"
+                    className="w-full py-3 bg-purple-600 text-white rounded-xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:bg-purple-700 transition-colors"
                   >
-                    {isUploading ? 'Mengunggah...' : '+ Tambah ke Daftar'}
+                    {isUploading ? (
+                      <><i className="fa-solid fa-spinner fa-spin"></i> Mengunggah foto...</>
+                    ) : (
+                      <>
+                        <FAIcon name="plus" size={14} /> Tambah ke Daftar
+                        {receiptUrl && <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">+ foto</span>}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
