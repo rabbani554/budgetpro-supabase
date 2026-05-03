@@ -5,117 +5,116 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BUDGETpro</title>
 
-  <!-- FontAwesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- React & ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  
-  <!-- Babel -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- HTML2PDF.js (Export PDF) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-  <!-- SheetJS / XLSX (Untuk Fitur Import Excel) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-  <!-- SUPABASE SDK (Menggantikan Firebase) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Google Fonts: DM Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Design System -->
   <style>
     :root {
-      --bg: #FAF8F4;
-      --surface: #FFFFFF;
-      --surface-2: #F3EFE8;
-      --border: #EEEBE4;
-      --green: #2DBE8C;
-      --purple: #7C6FF7;
-      --yellow: #F5C842;
-      --red: #F25C5C;
-      --text-1: #1A1A1A;
-      --text-2: #6B6B6B;
-      --text-3: #A0A0A0;
-      --radius-card: 20px;
-      --radius-pill: 99px;
-      --radius-btn: 14px;
+      --cream:    #FAF7F0;
+      --cream2:   #F2EDE0;
+      --black:    #1A1A1A;
+      --white:    #FFFFFF;
+      --mint:     #5DD9A4;
+      --mint-bg:  #C8F5E0;
+      --lavender: #A89AF9;
+      --lav-bg:   #E8E4FF;
+      --yellow:   #F5C842;
+      --yel-bg:   #FFF0A0;
+      --red:      #F04D4D;
+      --red-bg:   #FFE0E0;
+      --border:   2px solid #1A1A1A;
+      --shadow:   3px 3px 0 #1A1A1A;
+      --shadow-lg:5px 5px 0 #1A1A1A;
+      --radius:   18px;
+      --radius-sm:12px;
     }
-
-    /* Status badge */
-    .badge-pending  { background: #F3EFE8; color: #A0A0A0; }
-    .badge-under    { background: #E1F9F0; color: #0F6E56; }
-    .badge-on       { background: #E6F1FB; color: #185FA5; }
-    .badge-over     { background: #FCEBEB; color: #A32D2D; }
-    .badge-base     { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; display: inline-block; }
-
-    /* Animasi modal */
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to   { transform: translateY(0); }
-    }
-    @keyframes slideLeft {
-      from { transform: translateX(100%); }
-      to   { transform: translateX(0); }
-    }
-    .animate-slide-up   { animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1) both; }
-    .animate-slide-left { animation: slideLeft 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
-
-    /* Progress bar */
-    .progress-track { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
-    .progress-fill  { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
-
-    /* Desktop wrapper */
-    #root { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--bg); }
-
-    /* FAB */
-    .fab {
-      position: fixed; bottom: 24px; right: calc(50% - 215px + 16px);
-      background: var(--yellow); border-radius: 99px;
-      padding: 14px 20px; font-weight: 700; font-size: 15px;
-      color: #1A1A1A; border: none; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(245,200,66,0.4);
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #E8E2D4; font-family: 'Inter', sans-serif; color: var(--black); }
+    #root { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--cream); position: relative; overflow: hidden; border-left: 2px solid #1A1A1A; border-right: 2px solid #1A1A1A; }
+    * { -webkit-tap-highlight-color: transparent; }
+    input, textarea, select { font-family: 'Inter', sans-serif; }
+    button { cursor: pointer; border: none; background: none; font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'Space Mono', monospace; }
+    @keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp   { from { transform: translateY(110%); } to { transform: translateY(0); } }
+    @keyframes slideLeft { from { transform: translateX(110%); } to { transform: translateX(0); } }
+    @keyframes pulse     { 0%,100%{ opacity:1 } 50%{ opacity:.3 } }
+    @keyframes pop       { 0%{transform:scale(.9);opacity:0;} 60%{transform:scale(1.04);} 100%{transform:scale(1);opacity:1;} }
+    .animate-fade-in    { animation: fadeIn 0.2s ease both; }
+    .animate-slide-up   { animation: slideUp 0.32s cubic-bezier(.34,1.56,.64,1) both; }
+    .animate-slide-left { animation: slideLeft 0.35s cubic-bezier(.34,1.56,.64,1) both; }
+    .rcard    { background: var(--white); border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .rcard-sm { background: var(--white); border: var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); }
+    .rbtn { border: var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); font-family: 'Space Mono', monospace; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .12s, box-shadow .12s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .rbtn:active { transform: translate(3px,3px); box-shadow: none; }
+    .rbtn-yellow { background: var(--yellow); color: var(--black); }
+    .rbtn-mint   { background: var(--mint);   color: var(--black); }
+    .rbtn-lav    { background: var(--lavender); color: var(--black); }
+    .rbtn-white  { background: var(--white);  color: var(--black); }
+    .rbtn-black  { background: var(--black);  color: var(--white); }
+    .rbtn-red    { background: var(--red);    color: var(--white); }
+    .rbtn-full   { width:100%; height:52px; font-size:15px; border-radius:var(--radius-sm); }
+    .rinput { background: var(--cream2); border: var(--border); border-radius: var(--radius-sm); height: 52px; padding: 0 14px; font-size: 14px; font-family: 'Space Mono', monospace; color: var(--black); width: 100%; outline: none; transition: box-shadow .15s; }
+    .rinput:focus { box-shadow: var(--shadow); }
+    .rinput::placeholder { color: #AAA; font-family: 'Inter', sans-serif; }
+    .rtextarea { background: var(--cream2); border: var(--border); border-radius: var(--radius-sm); padding: 12px 14px; min-height: 80px; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--black); width: 100%; outline: none; resize: none; transition: box-shadow .15s; }
+    .rtextarea:focus { box-shadow: var(--shadow); }
+    .rlabel { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: var(--black); margin-bottom: 5px; display: block; letter-spacing: .04em; text-transform: uppercase; }
+    .badge-base    { font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; display:inline-block; border:1.5px solid var(--black); font-family:'Space Mono',monospace; }
+    .badge-pending { background: var(--cream2); color: #666; }
+    .badge-under   { background: var(--mint-bg); color: #0A5A3A; }
+    .badge-on      { background: var(--lav-bg);  color: #3D34A0; }
+    .badge-over    { background: var(--red-bg);  color: #8B1A1A; }
+    .progress-track { height: 7px; background: var(--cream2); border-radius: 99px; border: 1.5px solid var(--black); overflow: hidden; }
+    .progress-fill  { height: 100%; border-radius: 99px; transition: width .4s ease; }
+    .tab-group { background: var(--cream2); border: var(--border); border-radius: 99px; padding: 3px; display: flex; box-shadow: var(--shadow); }
+    .tab-item { flex: 1; height: 38px; border-radius: 99px; display: flex; align-items: center; justify-content: center; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .18s; color: #888; }
+    .tab-item.active { background: var(--black); color: var(--white); }
+    .chip { padding: 6px 14px; border-radius: 99px; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; transition: all .15s; background: var(--cream2); color: #666; border: 1.5px solid #CCC; }
+    .chip.active { background: var(--black); color: var(--white); border-color: var(--black); box-shadow: var(--shadow); }
+    .sheet { width: 100%; max-width: 430px; margin: 0 auto; background: var(--cream); border-radius: 24px 24px 0 0; border: var(--border); border-bottom: none; max-height: 92vh; display: flex; flex-direction: column; }
+    .sheet-handle { width: 40px; height: 4px; background: var(--black); border-radius: 99px; margin: 14px auto 18px; flex-shrink: 0; }
+    .sheet-scroll { overflow-y: auto; padding: 0 20px 40px; flex: 1; }
+    .sheet-title { font-family: 'Space Mono', monospace; font-size: 20px; font-weight: 700; padding: 0 20px; margin-bottom: 20px; flex-shrink: 0; }
+    .sidebar-panel { position: fixed; top: 0; width: 100%; max-width: 430px; height: 100vh; background: var(--cream); border-left: var(--border); z-index: 201; display: flex; flex-direction: column; animation: slideLeft .35s cubic-bezier(.34,1.56,.64,1) both; left: 50%; transform: translateX(-50%); }
+    .fab { position: fixed; bottom: 20px; right: calc(50% - 215px + 16px); background: var(--yellow); border: var(--border); border-radius: 99px; height: 52px; padding: 0 22px; display: flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 14px; color: var(--black); box-shadow: var(--shadow-lg); cursor: pointer; z-index: 50; transition: transform .12s, box-shadow .12s; }
+    .fab:active { transform: translate(5px,5px); box-shadow: none; }
+    .upload-area { border: 2px dashed var(--black); border-radius: var(--radius-sm); height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; background: var(--cream2); transition: background .15s; }
+    .upload-area:hover { background: var(--yel-bg); }
+    .dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--black); animation:pulse 1.2s ease infinite; }
+    .dot:nth-child(2) { animation-delay:.2s; }
+    .dot:nth-child(3) { animation-delay:.4s; }
+    .skeleton { animation: pulse 1.4s ease-in-out infinite; background: var(--cream2); border-radius: 16px; }
     ::-webkit-scrollbar { width: 0px; background: transparent; }
+    @media print { .no-print { display: none !important; } }
+    @media (min-width: 432px) { #root { box-shadow: 0 0 0 2px #1A1A1A, 8px 8px 0 #1A1A1A; margin-top: 24px; min-height: calc(100vh - 48px); } }
   </style>
 </head>
-<body class="bg-gray-200">
+<body>
   <div id="root"></div>
 
-  <!-- Script Aplikasi React -->
   <script type="text/babel">
-
-    // ====================================================================
-    // ⚠️ PASTE SUPABASE CONFIG ANDA DI SINI
-    // ====================================================================
     const SUPABASE_URL = 'https://wzhcyorshcxscgeajcgz.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6aGN5b3JzaGN4c2NnZWFqY2d6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NDQxNTMsImV4cCI6MjA5MzEyMDE1M30.PJJJcqNpBlPW6DIQ3IyzxuIOF1ueSevqlohJ4FoTqz4';
-
-    // Inisialisasi Supabase
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // ====================================================================
 
     const { useState, useEffect, useRef } = React;
-    
-    // --- Komponen Icon FontAwesome ---
+
     const FAIcon = ({ name, size = 20, className = "" }) => (
-      <i className={`fa-solid fa-${name} ${className}`} 
+      <i className={`fa-solid fa-${name} ${className}`}
          style={{ fontSize: size, width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
       </i>
     );
-    
+
     const Plus = (p) => <FAIcon name="plus" {...p} />;
     const FileText = (p) => <FAIcon name="file-lines" {...p} />;
     const Camera = (p) => <FAIcon name="camera" {...p} />;
@@ -127,57 +126,49 @@
     const Trash2 = (p) => <FAIcon name="trash-can" {...p} />;
     const Save = (p) => <FAIcon name="floppy-disk" {...p} />;
     const ImageIcon = (p) => <FAIcon name="image" {...p} />;
-    const DollarSign = (p) => <FAIcon name="wallet" {...p} />; 
+    const DollarSign = (p) => <FAIcon name="wallet" {...p} />;
     const TrendingDown = (p) => <FAIcon name="arrow-trend-down" {...p} />;
     const TrendingUp = (p) => <FAIcon name="arrow-trend-up" {...p} />;
     const Minus = (p) => <FAIcon name="minus" {...p} />;
     const Download = (p) => <FAIcon name="download" {...p} />;
-    const Printer = (p) => <FAIcon name="file-pdf" {...p} />; 
+    const Printer = (p) => <FAIcon name="file-pdf" {...p} />;
     const FileInvoice = (p) => <FAIcon name="file-invoice" {...p} />;
     const ExcelIcon = (p) => <FAIcon name="file-excel" {...p} />;
     const UserIcon = (p) => <FAIcon name="user" {...p} />;
     const LockIcon = (p) => <FAIcon name="lock" {...p} />;
     const LogOutIcon = (p) => <FAIcon name="right-from-bracket" {...p} />;
 
-    // Format Rupiah
-    const formatRp = (angka) => {
-      return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-      }).format(angka || 0);
-    };
+    const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka || 0);
+    const displayDate = (start, end) => { if (!start) return '-'; if (!end || start === end) return start; return `${start} s/d ${end}`; };
 
-    // Format Tanggal Display
-    const displayDate = (start, end) => {
-      if (!start) return '-';
-      if (!end || start === end) return start;
-      return `${start} s/d ${end}`;
-    };
+    const WalletSVG = () => (
+      <svg width="90" height="90" viewBox="0 0 110 110" fill="none">
+        <rect x="8" y="28" width="94" height="62" rx="14" fill="#C8F5E0" stroke="#1A1A1A" strokeWidth="2"/>
+        <rect x="8" y="28" width="94" height="24" rx="14" fill="#5DD9A4" stroke="#1A1A1A" strokeWidth="2"/>
+        <rect x="8" y="40" width="94" height="12" fill="#5DD9A4"/>
+        <rect x="62" y="52" width="32" height="22" rx="10" fill="#A89AF9" stroke="#1A1A1A" strokeWidth="2"/>
+        <circle cx="78" cy="63" r="6" fill="#F5C842" stroke="#1A1A1A" strokeWidth="1.5"/>
+        <rect x="28" y="8" width="38" height="24" rx="8" fill="#FFF0A0" stroke="#1A1A1A" strokeWidth="2"/>
+        <rect x="34" y="14" width="26" height="4" rx="2" fill="#1A1A1A" opacity=".3"/>
+        <rect x="34" y="22" width="16" height="4" rx="2" fill="#1A1A1A" opacity=".18"/>
+      </svg>
+    );
 
     function App() {
-      // Data State
       const [projects, setProjects] = useState([]);
       const [users, setUsers] = useState([]);
       const [currentUser, setCurrentUser] = useState(null);
       const [isInitializing, setIsInitializing] = useState(true);
-      
-      // View State
       const [currentView, setCurrentView] = useState('dashboard');
       const [activeProject, setActiveProject] = useState(null);
-      
-      // Modal State
       const [showNewProjectModal, setShowNewProjectModal] = useState(false);
       const [showItemModal, setShowItemModal] = useState(false);
       const [showActualModal, setShowActualModal] = useState(false);
       const [showDetailSidebar, setShowDetailSidebar] = useState(false);
       const [showFullReportSidebar, setShowFullReportSidebar] = useState(false);
       const [selectedItem, setSelectedItem] = useState(null);
-
-      // Custom Delete Confirmation State
       const [deleteConfig, setDeleteConfig] = useState({ isOpen: false, type: '', payload: null, title: '', message: '' });
 
-      // Fungsi Ambil Data Supabase
       const fetchUsers = async () => {
         const { data } = await supabase.from('users').select('*');
         if (data) setUsers(data);
@@ -189,52 +180,37 @@
         setIsInitializing(false);
       };
 
-      // Init Load dari Supabase
       useEffect(() => {
-        // Load User Session dari memory browser
         const sessionUser = localStorage.getItem('budget_current_user');
         if (sessionUser) setCurrentUser(JSON.parse(sessionUser));
-
         fetchUsers();
         fetchProjects();
-
-        // Sinkronisasi data Real-time (Subscription)
         const userSub = supabase.channel('users_changes')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchUsers)
           .subscribe();
-
         const projectSub = supabase.channel('projects_changes')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchProjects)
           .subscribe();
-
-        return () => {
-          supabase.removeChannel(userSub);
-          supabase.removeChannel(projectSub);
-        };
+        return () => { supabase.removeChannel(userSub); supabase.removeChannel(projectSub); };
       }, []);
 
-      // Auto update state Active Project jika ada orang lain yang merubah datanya
       useEffect(() => {
-         if (activeProject) {
-            const updated = projects.find(p => p.id === activeProject.id);
-            if (updated) setActiveProject(updated);
-         }
+        if (activeProject) {
+          const updated = projects.find(p => p.id === activeProject.id);
+          if (updated) setActiveProject(updated);
+        }
       }, [projects]);
 
-      // --- Modul Auth ---
       const handleLogin = async (username, password) => {
-        // Fallback jika belum ada user sama sekali di DB, buatkan admin default
         if (users.length === 0 && username === 'admin' && password === 'admin123') {
-           const defaultAdmin = { username: 'admin', password: 'admin123', role: 'admin' };
-           await supabase.from('users').insert([defaultAdmin]);
-           
-           const userSession = { username: 'admin', role: 'admin' };
-           setCurrentUser(userSession);
-           localStorage.setItem('budget_current_user', JSON.stringify(userSession));
-           setCurrentView('dashboard');
-           return true;
+          const defaultAdmin = { username: 'admin', password: 'admin123', role: 'admin' };
+          await supabase.from('users').insert([defaultAdmin]);
+          const userSession = { username: 'admin', role: 'admin' };
+          setCurrentUser(userSession);
+          localStorage.setItem('budget_current_user', JSON.stringify(userSession));
+          setCurrentView('dashboard');
+          return true;
         }
-
         const found = users.find(u => u.username === username && u.password === password);
         if (found) {
           const userSession = { username: found.username, role: found.role };
@@ -247,11 +223,9 @@
       };
 
       const handleRegister = async (username, password, role) => {
-        if (users.find(u => u.username === username)) return false; 
-        
+        if (users.find(u => u.username === username)) return false;
         const newUser = { username, password, role };
         await supabase.from('users').insert([newUser]);
-        
         const userSession = { username, role };
         setCurrentUser(userSession);
         localStorage.setItem('budget_current_user', JSON.stringify(userSession));
@@ -266,40 +240,33 @@
         localStorage.removeItem('budget_current_user');
       };
 
-      // --- Modul Hapus Universal (Supabase) ---
       const triggerDelete = (type, payload, title, message) => {
         setDeleteConfig({ isOpen: true, type, payload, title, message });
       };
 
       const executeDelete = async () => {
         const { type, payload } = deleteConfig;
-        
         if (type === 'project') {
           await supabase.from('projects').delete().eq('id', payload);
           setProjects(prev => prev.filter(p => p.id !== payload));
           setActiveProject(null);
           setCurrentView('dashboard');
-        } 
-        else if (type === 'item') {
+        } else if (type === 'item') {
           const updatedItems = activeProject.items.filter(i => i.id !== payload);
           const updatedProject = { ...activeProject, items: updatedItems };
           await supabase.from('projects').update({ items: updatedItems }).eq('id', updatedProject.id);
           setShowDetailSidebar(false);
           setShowItemModal(false);
+        } else if (type === 'transaction') {
+          const newActuals = payload.currentActuals.filter(a => a.id !== payload.trxId);
+          await saveActualsToDB(payload.itemId, newActuals);
         }
-        else if (type === 'transaction') {
-           const newActuals = payload.currentActuals.filter(a => a.id !== payload.trxId);
-           await saveActualsToDB(payload.itemId, newActuals); 
-        }
-        
         setDeleteConfig({ isOpen: false, type: '', payload: null, title: '', message: '' });
       };
 
-      // --- Handlers App (Menyimpan Langsung ke Supabase) ---
       const handleUpdateProjectInfo = async (field, value) => {
         const updated = { ...activeProject, [field]: value };
-        // Update lokal agar UI responsif
-        setActiveProject(updated); 
+        setActiveProject(updated);
         await supabase.from('projects').update({ [field]: value }).eq('id', updated.id);
       };
 
@@ -310,80 +277,60 @@
         } else {
           updatedItems = [...activeProject.items, { ...itemData, id: Date.now().toString(), actuals: [], status: 'pending' }];
         }
-        
         const updatedProject = { ...activeProject, items: updatedItems };
         await supabase.from('projects').update({ items: updatedItems }).eq('id', updatedProject.id);
         setShowItemModal(false);
       };
 
       const saveActualsToDB = async (itemId, newActuals) => {
-  // Pastikan kita tidak memproses jika data project belum siap
-  if (!activeProject || !activeProject.items) return;
-
-  // 1. Hitung total berdasarkan data TERBARU dari modal (bukan dari state lama)
-  const plannedItem = activeProject.items.find(i => i.id === itemId);
-  const plannedTotal = plannedItem.qty * plannedItem.budget;
-  const actualTotal = newActuals.reduce((sum, act) => sum + Number(act.amount), 0);
-  
-  // 2. Tentukan status
-  let status = 'pending';
-  if (newActuals.length > 0) {
-    status = actualTotal > plannedTotal ? 'over-budget' : (actualTotal < plannedTotal ? 'under-budget' : 'on-budget');
-  }
-
-  // 3. Buat array items baru dengan data aktual yang baru saja diinput
-  const updatedItems = activeProject.items.map(i => {
-    if (i.id === itemId) {
-      return { ...i, actuals: newActuals, status: status };
-    }
-    return i;
-  });
-
-  // 4. Update ke Supabase
-  const { error } = await supabase
-    .from('projects')
-    .update({ items: updatedItems })
-    .eq('id', activeProject.id);
-
-  if (error) {
-    console.error("Gagal simpan:", error);
-    alert("Gagal simpan ke server");
-  } else {
-    // 5. CRITICAL: Update state lokal agar UI langsung berubah tanpa refresh
-    setActiveProject(prev => ({ ...prev, items: updatedItems }));
-    setProjects(prevProj => prevProj.map(p => p.id === activeProject.id ? { ...p, items: updatedItems } : p));
-  }
-};
-
-      // --- Computations ---
-      const getItemActualTotal = (item) => {
-        if (item.actuals && Array.isArray(item.actuals)) {
-          return item.actuals.reduce((sum, a) => sum + Number(a.amount), 0);
+        if (!activeProject || !activeProject.items) return;
+        const plannedItem = activeProject.items.find(i => i.id === itemId);
+        const plannedTotal = plannedItem.qty * plannedItem.budget;
+        const actualTotal = newActuals.reduce((sum, act) => sum + Number(act.amount), 0);
+        let status = 'pending';
+        if (newActuals.length > 0) {
+          status = actualTotal > plannedTotal ? 'over-budget' : (actualTotal < plannedTotal ? 'under-budget' : 'on-budget');
         }
-        return 0;
+        const updatedItems = activeProject.items.map(i => {
+          if (i.id === itemId) return { ...i, actuals: newActuals, status: status };
+          return i;
+        });
+        const { error } = await supabase.from('projects').update({ items: updatedItems }).eq('id', activeProject.id);
+        if (error) { console.error("Gagal simpan:", error); alert("Gagal simpan ke server"); }
+        else {
+          setActiveProject(prev => ({ ...prev, items: updatedItems }));
+          setProjects(prevProj => prevProj.map(p => p.id === activeProject.id ? { ...p, items: updatedItems } : p));
+        }
       };
 
+      const getItemActualTotal = (item) => {
+        if (item.actuals && Array.isArray(item.actuals)) return item.actuals.reduce((sum, a) => sum + Number(a.amount), 0);
+        return 0;
+      };
       const calculateTotalPlan = (items) => items.reduce((sum, item) => sum + (item.qty * item.budget), 0);
       const calculateTotalActual = (items) => items.reduce((sum, item) => sum + getItemActualTotal(item), 0);
 
-      // --- Filter Project Berdasarkan Role ---
-      const displayedProjects = currentUser?.role === 'admin' 
-        ? projects 
-        : projects.filter(p => p.owner === currentUser?.username);
+      const displayedProjects = currentUser?.role === 'admin' ? projects : projects.filter(p => p.owner === currentUser?.username);
 
-      // --- Komponen Antarmuka ---
-
-      // Layar Loading Awal
       if (isInitializing) {
-         return (
-           <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-4">
-             <i className="fa-solid fa-spinner fa-spin text-white text-4xl mb-4"></i>
-             <p className="text-blue-200 font-bold">Menghubungkan ke Server...</p>
-           </div>
-         )
+        return (
+          <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:28 }}>
+            <div style={{ position:'relative' }}>
+              <div style={{ position:'absolute', inset:0, background:'var(--yellow)', borderRadius:20, transform:'rotate(-5deg)', border:'var(--border)' }}></div>
+              <div style={{ position:'relative', background:'var(--cream)', border:'var(--border)', borderRadius:20, padding:'20px 24px', boxShadow:'var(--shadow-lg)' }}>
+                <WalletSVG />
+              </div>
+            </div>
+            <div style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:32, letterSpacing:'-1px' }}>
+              BUDGET<span style={{ color:'var(--lavender)' }}>pro</span>
+            </div>
+            <div style={{ display:'flex', gap:10 }}>
+              <span className="dot"></span><span className="dot"></span><span className="dot"></span>
+            </div>
+          </div>
+        );
       }
 
-      // Layar Login & Registrasi
       const AuthScreen = () => {
         const [isLoginView, setIsLoginView] = useState(true);
         const [username, setUsername] = useState('');
@@ -394,11 +341,7 @@
 
         const submitAuth = async () => {
           setError('');
-          if(!username || !password) {
-            setError('Username dan Password wajib diisi');
-            return;
-          }
-
+          if (!username || !password) { setError('Username dan Password wajib diisi'); return; }
           if (isLoginView) {
             const success = await handleLogin(username, password);
             if (!success) setError('Username atau Password salah!');
@@ -409,177 +352,112 @@
           }
         };
 
-        const inputStyle = {
-          background: 'var(--surface-2)', border: '1px solid var(--border)',
-          borderRadius: 12, height: 50, padding: '0 14px', fontSize: 15,
-          width: '100%', outline: 'none', boxSizing: 'border-box',
-          color: 'var(--text-1)', fontFamily: 'inherit', transition: 'border-color 0.15s'
-        };
-
         return (
-          <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
-
-            {/* ── Bagian Atas ── */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px 24px' }}>
-              {/* Ikon */}
-              <div style={{ position: 'relative', width: 80, height: 80, marginBottom: 20 }}>
-                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--purple)', opacity: 0.12 }} />
-                <div style={{ position: 'relative', width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="fa-solid fa-wallet" style={{ fontSize: 32, color: 'var(--purple)' }} />
+          <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', flexDirection:'column' }}>
+            <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'48px 24px 28px', gap:18 }}>
+              <div style={{ position:'relative' }}>
+                <div style={{ position:'absolute', inset:0, background:'var(--yellow)', borderRadius:18, transform:'rotate(-4deg)', border:'var(--border)' }}></div>
+                <div style={{ position:'relative', background:'var(--cream)', border:'var(--border)', borderRadius:18, padding:'18px 22px', boxShadow:'var(--shadow-lg)' }}>
+                  <WalletSVG />
                 </div>
               </div>
-              {/* Judul */}
-              <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 8px', letterSpacing: '-0.5px' }}>BUDGETpro</h1>
-              {/* Tagline */}
-              <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', maxWidth: 240, fontStyle: 'italic', lineHeight: 1.55, margin: 0 }}>
-                "semoga membantu kamu mempertanggungjawabkan budget yang sudah dibuat"
-              </p>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:30, letterSpacing:'-1px', lineHeight:1 }}>
+                  BUDGET<span style={{ color:'var(--lavender)' }}>pro</span>
+                </div>
+                <div style={{ fontSize:12, color:'#888', fontStyle:'italic', maxWidth:240, lineHeight:1.6, marginTop:8 }}>
+                  "semoga membantu kamu mempertanggungjawabkan budget yang sudah dibuat"
+                </div>
+              </div>
             </div>
 
-            {/* ── Form Card ── */}
-            <div style={{ background: 'var(--surface)', borderRadius: '24px 24px 0 0', borderTop: '1px solid var(--border)', padding: '24px 20px 36px' }}>
-
-              {/* Handle bar */}
-              <div style={{ width: 36, height: 4, background: 'var(--border)', borderRadius: 99, margin: '0 auto 20px' }} />
-
-              {/* Tab toggle */}
-              <div style={{ background: 'var(--surface-2)', borderRadius: 12, padding: 4, display: 'flex', marginBottom: 20 }}>
-                {[{ label: 'Masuk', active: isLoginView, onClick: () => { setIsLoginView(true); setError(''); } },
-                  { label: 'Daftar', active: !isLoginView, onClick: () => { setIsLoginView(false); setError(''); } }
-                ].map(tab => (
-                  <button key={tab.label} onClick={tab.onClick} style={{
-                    flex: 1, height: 40, fontSize: 14, cursor: 'pointer', transition: '0.2s',
-                    border: tab.active ? '1px solid var(--border)' : 'none',
-                    borderRadius: 10,
-                    background: tab.active ? 'white' : 'transparent',
-                    fontWeight: tab.active ? 700 : 400,
-                    color: tab.active ? 'var(--text-1)' : 'var(--text-3)',
-                    fontFamily: 'inherit'
-                  }}>{tab.label}</button>
-                ))}
+            <div className="animate-slide-up" style={{ background:'var(--cream)', borderRadius:'24px 24px 0 0', border:'var(--border)', borderBottom:'none', padding:'24px 22px 44px', boxShadow:'0 -4px 0 #1A1A1A' }}>
+              <div className="tab-group" style={{ marginBottom:22 }}>
+                <div className={`tab-item ${isLoginView ? 'active' : ''}`} onClick={() => { setIsLoginView(true); setError(''); }}>MASUK</div>
+                <div className={`tab-item ${!isLoginView ? 'active' : ''}`} onClick={() => { setIsLoginView(false); setError(''); }}>DAFTAR</div>
               </div>
 
-              {/* Error */}
               {error && (
-                <div style={{ background: '#FCEBEB', color: '#A32D2D', padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600, marginBottom: 16, textAlign: 'center' }}>
-                  {error}
+                <div style={{ background:'var(--red-bg)', border:'var(--border)', borderRadius:10, padding:'10px 14px', fontSize:12, fontFamily:'Space Mono,monospace', fontWeight:700, display:'flex', alignItems:'center', gap:8, boxShadow:'2px 2px 0 #1A1A1A', marginBottom:14 }}>
+                  <i className="fa-solid fa-triangle-exclamation"></i> {error}
                 </div>
               )}
 
-              {/* Username */}
-              <label htmlFor="auth-username" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>Username</label>
-              <input
-                id="auth-username" name="username" type="text" value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="Masukkan username"
-                autoComplete="username"
-                style={inputStyle}
-                onFocus={e => e.target.style.borderColor = 'var(--purple)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              />
+              <label className="rlabel" htmlFor="auth-username">USERNAME</label>
+              <input id="auth-username" name="username" type="text" className="rinput" style={{ marginBottom:14 }}
+                value={username} onChange={e => setUsername(e.target.value)}
+                placeholder="Masukkan username" autoComplete="username" />
 
-              {/* Password */}
-              <label htmlFor="auth-password" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-2)', margin: '12px 0 6px' }}>Password</label>
-              <div style={{ position: 'relative', marginBottom: !isLoginView ? 16 : 0 }}>
-                <input
-                  id="auth-password" name="password"
+              <label className="rlabel" htmlFor="auth-password">PASSWORD</label>
+              <div style={{ position:'relative', marginBottom: !isLoginView ? 16 : 0 }}>
+                <input id="auth-password" name="password" className="rinput"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Masukkan password"
-                  autoComplete="current-password"
-                  style={{ ...inputStyle, paddingRight: 44 }}
-                  onFocus={e => e.target.style.borderColor = 'var(--purple)'}
-                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(p => !p)}
-                  style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, lineHeight: 1 }}
-                >
-                  <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} style={{ fontSize: 16 }} />
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="Masukkan password" autoComplete="current-password"
+                  style={{ paddingRight:48 }} />
+                <button type="button" onClick={() => setShowPassword(p => !p)}
+                  style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#AAA', padding:0 }}>
+                  <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} style={{ fontSize:16 }} />
                 </button>
               </div>
 
-              {/* Role selector — hanya di tab daftar */}
               {!isLoginView && (
-                <div style={{ marginBottom: 16 }}>
-                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8, marginTop: 0 }}>Daftar sebagai:</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {[{ label: 'User Biasa', value: false }, { label: 'Admin HR/Finance', value: true }].map(opt => (
-                      <button
-                        key={opt.label}
-                        type="button"
-                        onClick={() => setIsAdminReg(opt.value)}
-                        style={{
-                          flex: 1, padding: '8px 12px', fontSize: 13, borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit',
-                          border: `1px solid ${isAdminReg === opt.value ? 'var(--purple)' : 'var(--border)'}`,
-                          background: isAdminReg === opt.value ? 'var(--purple)' : 'var(--surface-2)',
-                          color: isAdminReg === opt.value ? 'white' : 'var(--text-2)',
-                          fontWeight: isAdminReg === opt.value ? 700 : 400,
-                          transition: '0.2s'
-                        }}
-                      >{opt.label}</button>
+                <div style={{ marginBottom:16 }}>
+                  <p style={{ fontSize:12, color:'#888', marginBottom:8, fontFamily:'Space Mono,monospace' }}>DAFTAR SEBAGAI:</p>
+                  <div style={{ display:'flex', gap:8 }}>
+                    {[{ label:'User Biasa', value:false }, { label:'Admin HR/Finance', value:true }].map(opt => (
+                      <button key={opt.label} type="button" onClick={() => setIsAdminReg(opt.value)}
+                        style={{ flex:1, padding:'9px 12px', fontSize:12, borderRadius:99, cursor:'pointer', fontFamily:'Space Mono,monospace', fontWeight:700,
+                          border: isAdminReg === opt.value ? 'var(--border)' : '1.5px solid #CCC',
+                          background: isAdminReg === opt.value ? 'var(--lav-bg)' : 'var(--cream2)',
+                          color: isAdminReg === opt.value ? '#3D34A0' : '#888',
+                          boxShadow: isAdminReg === opt.value ? 'var(--shadow)' : 'none', transition:'0.2s' }}>
+                        {opt.label}
+                      </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Submit */}
-              <button
-                onClick={submitAuth}
-                style={{
-                  width: '100%', background: 'var(--yellow)', border: 'none',
-                  borderRadius: 'var(--radius-btn)', height: 52, fontSize: 16, fontWeight: 700,
-                  color: '#1A1A1A', cursor: 'pointer', marginTop: 16, fontFamily: 'inherit',
-                  transition: 'opacity 0.2s, transform 0.1s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.97)'}
-                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                {isLoginView ? 'Masuk ke Aplikasi' : 'Buat Akun'}
+              <button className="rbtn rbtn-yellow rbtn-full" style={{ marginTop:4 }} onClick={submitAuth}>
+                {isLoginView ? 'MASUK →' : 'BUAT AKUN →'}
               </button>
 
-              {/* Hint akun default */}
               {isLoginView && users.length === 0 && (
-                <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', marginTop: 12 }}>
-                  Masuk dengan <strong>admin / admin123</strong> untuk pertama kali
-                </p>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#AAA', textAlign:'center', marginTop:10 }}>
+                  Pertama kali? Masuk dengan <strong>admin / admin123</strong>
+                </div>
               )}
-
-              {/* Footer */}
-              <p style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'center', marginTop: 24, marginBottom: 0 }}>
-                Internal Use Only · by RBN ;D
+              <p style={{ fontSize:11, color:'#AAA', textAlign:'center', marginTop:20, fontFamily:'Space Mono,monospace' }}>
+                Internal Use Only &middot; by RBN ;D
               </p>
             </div>
           </div>
         );
-      }
+      };
 
-      // 0. Komponen Konfirmasi Universal
       const ConfirmModal = () => {
         if (!deleteConfig.isOpen) return null;
         return (
-          <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4 animate-fade-in no-print">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-slide-up">
-              <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle size={32} />
+          <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,.7)', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }} className="animate-fade-in no-print">
+            <div className="rcard" style={{ padding:'24px 20px 20px', width:'100%', maxWidth:360, animation:'pop .25s ease both' }}>
+              <div style={{ width:56, height:56, background:'var(--red-bg)', border:'var(--border)', borderRadius:'50%', boxShadow:'var(--shadow)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', color:'var(--red)' }}>
+                <AlertCircle size={28} />
               </div>
-              <h3 className="font-black text-xl text-center text-gray-800 mb-2">{deleteConfig.title}</h3>
-              <p className="text-gray-500 text-center text-sm mb-6 leading-relaxed">{deleteConfig.message}</p>
-              
-              <div className="flex gap-3">
-                <button onClick={() => setDeleteConfig({ isOpen: false })} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold text-sm">Batal</button>
-                <button onClick={executeDelete} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-sm shadow-md active:bg-red-700">Ya, Hapus</button>
+              <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18, textAlign:'center', marginBottom:8 }}>{deleteConfig.title}</p>
+              <p style={{ fontSize:13, color:'#666', textAlign:'center', marginBottom:20, lineHeight:1.5 }}>{deleteConfig.message}</p>
+              <div style={{ display:'flex', gap:10 }}>
+                <button onClick={() => setDeleteConfig({ isOpen:false })}
+                  style={{ flex:1, height:46, border:'var(--border)', borderRadius:12, background:'var(--cream2)', fontFamily:'Space Mono,monospace', fontWeight:700, cursor:'pointer', boxShadow:'2px 2px 0 #1A1A1A' }}>
+                  BATAL
+                </button>
+                <button className="rbtn rbtn-red" style={{ flex:1, height:46 }} onClick={executeDelete}>HAPUS</button>
               </div>
             </div>
           </div>
         );
-      }
+      };
 
-      // 1. Modal Pembuatan Trip Baru & Import Excel
       const NewProjectModal = () => {
         const [formData, setFormData] = useState({
           name: '', target: '', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0]
@@ -587,12 +465,12 @@
 
         const handleDownloadTemplate = () => {
           const wsData = [
-              ["Item", "Qty", "Unit", "Budget Satuan", "Keterangan"],
-              ["Hotel", 1, "malam", 350000, "Contoh: Hotel untuk tim"],
-              ["Tiket Pesawat", 2, "orang", 1500000, "Contoh: PP Jakarta"]
+            ["Item","Qty","Unit","Budget Satuan","Keterangan"],
+            ["Hotel",1,"malam",350000,"Contoh: Hotel untuk tim"],
+            ["Tiket Pesawat",2,"orang",1500000,"Contoh: PP Jakarta"]
           ];
           const ws = XLSX.utils.aoa_to_sheet(wsData);
-          ws['!cols'] = [{wch: 25}, {wch: 8}, {wch: 12}, {wch: 18}, {wch: 35}];
+          ws['!cols'] = [{wch:25},{wch:8},{wch:12},{wch:18},{wch:35}];
           const wb = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(wb, ws, "Template Budget");
           XLSX.writeFile(wb, "Template_BUDGETpro.xlsx");
@@ -603,141 +481,89 @@
           if (!file) return;
           const reader = new FileReader();
           reader.onload = async (evt) => {
-              const bstr = evt.target.result;
-              const wb = XLSX.read(bstr, { type: 'binary' });
-              const wsname = wb.SheetNames[0];
-              const ws = wb.Sheets[wsname];
-              const data = XLSX.utils.sheet_to_json(ws);
-              
-              const importedItems = data.map((row, idx) => ({
-                  id: Date.now().toString() + '_' + idx,
-                  name: row['Item'] || row['Nama Item'] || 'Item ' + (idx+1),
-                  qty: Number(row['Qty'] || row['Jumlah'] || 1),
-                  unit: row['Unit'] || row['Satuan'] || 'paket',
-                  budget: Number(row['Budget Satuan'] || row['Budget'] || row['Harga'] || 0),
-                  notes: row['Keterangan'] || row['Catatan'] || '',
-                  actuals: [],
-                  status: 'pending'
-              }));
-
-              const newProject = {
-                  id: Date.now().toString(),
-                  name: formData.name || 'Project Hasil Import',
-                  target: formData.target || '',
-                  startDate: formData.startDate,
-                  endDate: formData.endDate,
-                  owner: currentUser.username, 
-                  items: importedItems
-              };
-
-              const { data: insertedData } = await supabase.from('projects').insert([newProject]).select();
-              const savedProject = (insertedData && insertedData[0]) ? insertedData[0] : newProject;
-              setProjects(prev => [savedProject, ...prev.filter(p => p.id !== savedProject.id)]);
-              setActiveProject(savedProject);
-              setShowNewProjectModal(false);
-              setCurrentView('project_detail');
+            const bstr = evt.target.result;
+            const wb = XLSX.read(bstr, { type:'binary' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const data = XLSX.utils.sheet_to_json(ws);
+            const importedItems = data.map((row, idx) => ({
+              id: Date.now().toString() + '_' + idx,
+              name: row['Item'] || row['Nama Item'] || 'Item '+(idx+1),
+              qty: Number(row['Qty'] || row['Jumlah'] || 1),
+              unit: row['Unit'] || row['Satuan'] || 'paket',
+              budget: Number(row['Budget Satuan'] || row['Budget'] || row['Harga'] || 0),
+              notes: row['Keterangan'] || row['Catatan'] || '',
+              actuals: [], status: 'pending'
+            }));
+            const newProject = { id: Date.now().toString(), name: formData.name || 'Project Hasil Import', target: formData.target || '', startDate: formData.startDate, endDate: formData.endDate, owner: currentUser.username, items: importedItems };
+            const { data: insertedData } = await supabase.from('projects').insert([newProject]).select();
+            const savedProject = (insertedData && insertedData[0]) ? insertedData[0] : newProject;
+            setProjects(prev => [savedProject, ...prev.filter(p => p.id !== savedProject.id)]);
+            setActiveProject(savedProject);
+            setShowNewProjectModal(false);
+            setCurrentView('project_detail');
           };
           reader.readAsBinaryString(file);
         };
 
         const handleCreateManual = async () => {
-  if (!formData.name) return alert("Nama Event wajib diisi!");
-
-  // Siapkan objek data sesuai dengan kolom di tabel Supabase Anda
-  const newProject = {
-    id: Date.now().toString(),
-    name: formData.name,
-    target: formData.target || '',
-    startDate: formData.startDate,
-    endDate: formData.endDate,
-    owner: currentUser.username,
-    items: [] // Ini akan masuk ke kolom jsonb
-  };
-
-  // 1. Simpan ke Supabase
-  const { data, error } = await supabase
-    .from('projects')
-    .insert([newProject])
-    .select(); // Mengambil hasil kembalian untuk konfirmasi
-
-  if (error) {
-    console.error("Error Simpan:", error);
-    alert("Gagal simpan ke server: " + error.message);
-  } else {
-    const savedProject = (data && data[0]) ? data[0] : newProject;
-    setProjects(prev => [savedProject, ...prev.filter(p => p.id !== savedProject.id)]);
-    setActiveProject(savedProject);
-    setShowNewProjectModal(false);
-    setCurrentView('project_detail');
-  }
-};
+          if (!formData.name) return alert("Nama Event wajib diisi!");
+          const newProject = { id: Date.now().toString(), name: formData.name, target: formData.target || '', startDate: formData.startDate, endDate: formData.endDate, owner: currentUser.username, items: [] };
+          const { data, error } = await supabase.from('projects').insert([newProject]).select();
+          if (error) { console.error("Error Simpan:", error); alert("Gagal simpan ke server: " + error.message); }
+          else {
+            const savedProject = (data && data[0]) ? data[0] : newProject;
+            setProjects(prev => [savedProject, ...prev.filter(p => p.id !== savedProject.id)]);
+            setActiveProject(savedProject);
+            setShowNewProjectModal(false);
+            setCurrentView('project_detail');
+          }
+        };
 
         return (
-          <div className="fixed inset-0 bg-black/70 z-50 flex flex-col justify-end animate-fade-in no-print">
-            <div className="absolute inset-0" onClick={() => setShowNewProjectModal(false)}></div>
-            <div className="bg-white rounded-t-3xl w-full max-h-[95vh] flex flex-col relative z-10 animate-slide-up shadow-2xl">
-              
-              <div className="bg-white px-6 py-5 border-b border-gray-100 flex justify-between items-center rounded-t-3xl flex-shrink-0">
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-blue-600 mb-0.5">Persiapan</p>
-                  <h3 className="font-bold text-gray-800 text-lg">Buat Event / Trip Baru</h3>
-                </div>
-                <button onClick={() => setShowNewProjectModal(false)} className="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-600 rounded-full active:bg-gray-200">
-                  <FAIcon name="xmark" size={16} />
-                </button>
-              </div>
-              
-              <div className="p-6 overflow-y-auto space-y-5">
-                <div>
-                  <label htmlFor="proj-name" className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Event</label>
-                  <input id="proj-name" name="proj-name" type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
-                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Perjalanan Dinas JKT" />
-                </div>
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', zIndex:100, display:'flex', alignItems:'flex-end', animation:'fadeIn .2s ease' }} className="no-print" onClick={() => setShowNewProjectModal(false)}>
+            <div className="sheet animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="sheet-handle"></div>
+              <div className="sheet-title">TRIP BARU</div>
+              <div className="sheet-scroll">
+                <label className="rlabel" htmlFor="proj-name">NAMA EVENT</label>
+                <input id="proj-name" name="proj-name" className="rinput" style={{ marginBottom:14 }}
+                  value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Perjalanan Dinas JKT" />
 
-                <div className="grid grid-cols-2 gap-3">
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
                   <div>
-                    <label htmlFor="proj-start" className="block text-xs font-bold text-gray-500 uppercase mb-2">Mulai</label>
-                    <input id="proj-start" name="proj-start" type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    <label className="rlabel" htmlFor="proj-start">MULAI</label>
+                    <input id="proj-start" name="proj-start" type="date" className="rinput"
                       value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                   </div>
                   <div>
-                    <label htmlFor="proj-end" className="block text-xs font-bold text-gray-500 uppercase mb-2">Selesai</label>
-                    <input id="proj-end" name="proj-end" type="date" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                    <label className="rlabel" htmlFor="proj-end">SELESAI</label>
+                    <input id="proj-end" name="proj-end" type="date" className="rinput"
                       value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="proj-target" className="block text-xs font-bold text-gray-500 uppercase mb-2">Target (Opsional)</label>
-                  <textarea id="proj-target" name="proj-target" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
-                    rows="2" value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} placeholder="Tujuan perjalanan..." />
-                </div>
+                <label className="rlabel" htmlFor="proj-target">TARGET (OPSIONAL)</label>
+                <textarea id="proj-target" name="proj-target" className="rtextarea" style={{ marginBottom:20 }}
+                  value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})} placeholder="Tujuan perjalanan..." />
 
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-sm font-bold text-gray-800 mb-3">Pilih Cara Input Budget:</p>
-                  
-                  <div className="space-y-3">
-                    <button onClick={handleCreateManual} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md active:bg-blue-700 flex items-center justify-center gap-2">
-                      <Plus size={16} /> Mulai Kosong (Input Manual)
-                    </button>
-                    
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
-                      <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-400">ATAU</span></div>
-                    </div>
-
-                    <div className="bg-green-50 p-4 rounded-xl border border-green-200 space-y-3">
-                      <button onClick={handleDownloadTemplate} className="w-full py-2.5 bg-white border-2 border-green-600 text-green-700 rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-green-100">
-                        <Download size={14} /> Download Template Excel
-                      </button>
-                      <label className="cursor-pointer w-full py-3 bg-green-600 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 shadow-sm hover:bg-green-700">
-                        <ExcelIcon size={16} /> Import dari Excel
-                        <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleImportExcel} />
-                      </label>
-                    </div>
+                <div style={{ borderTop:'var(--border)', paddingTop:20 }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:12, fontWeight:700, marginBottom:12 }}>PILIH CARA INPUT:</p>
+                  <button className="rbtn rbtn-black rbtn-full" style={{ marginBottom:12 }} onClick={handleCreateManual}>
+                    <i className="fa-solid fa-plus"></i> MULAI KOSONG
+                  </button>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+                    <div style={{ flex:1, height:1, background:'#CCC' }}></div>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, color:'#AAA' }}>ATAU</span>
+                    <div style={{ flex:1, height:1, background:'#CCC' }}></div>
                   </div>
+                  <button className="rbtn rbtn-white rbtn-full" style={{ marginBottom:10 }} onClick={handleDownloadTemplate}>
+                    <Download size={14} /> DOWNLOAD TEMPLATE
+                  </button>
+                  <label className="rbtn rbtn-mint rbtn-full" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, cursor:'pointer' }}>
+                    <ExcelIcon size={16} /> IMPORT EXCEL
+                    <input type="file" accept=".xlsx, .xls" style={{ display:'none' }} onChange={handleImportExcel} />
+                  </label>
                 </div>
-
               </div>
             </div>
           </div>
@@ -746,17 +572,9 @@
 
       const Dashboard = () => {
         const [activeFilter, setActiveFilter] = useState('semua');
-
-        // Grand total dari semua project yang ditampilkan
-        const grandPlan   = displayedProjects.reduce((s, p) => s + calculateTotalPlan(p.items), 0);
-        const grandActual = displayedProjects.reduce((s, p) => s + calculateTotalActual(p.items), 0);
+        const grandPlan   = displayedProjects.reduce((s,p) => s + calculateTotalPlan(p.items), 0);
+        const grandActual = displayedProjects.reduce((s,p) => s + calculateTotalActual(p.items), 0);
         const grandVar    = grandPlan - grandActual;
-
-        const chips = [
-          { id: 'semua',   label: 'Semua' },
-          { id: 'selesai', label: 'Selesai' },
-          { id: 'pending', label: 'Pending' },
-        ];
 
         const filteredProjects = displayedProjects.filter(proj => {
           const done = proj.items.length > 0 && proj.items.every(i => i.status !== 'pending');
@@ -766,57 +584,55 @@
         });
 
         return (
-          <div style={{ paddingBottom: 100, background: 'var(--bg)', minHeight: '100vh' }}>
-
-            {/* ── Header ── */}
-            <div style={{ background: 'linear-gradient(135deg, var(--purple) 0%, #9B8FF8 100%)', padding: '48px 20px 56px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', margin: 0 }}>Halo,</p>
-                <p style={{ fontSize: 24, fontWeight: 700, color: 'white', margin: '2px 0 0' }}>{currentUser.username}!</p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: 'white', textTransform: 'uppercase' }}>
-                  {currentUser.username.charAt(0)}
+          <div style={{ paddingBottom:100, background:'var(--cream)', minHeight:'100vh' }}>
+            <div style={{ background:'var(--lavender)', borderBottom:'var(--border)', padding:'52px 20px 60px', position:'relative' }}>
+              <div style={{ position:'absolute', top:20, right:70, width:14, height:14, borderRadius:'50%', background:'var(--yellow)', border:'2px solid #1A1A1A' }}></div>
+              <div style={{ position:'absolute', top:36, right:52, width:8, height:8, borderRadius:'50%', background:'var(--mint)', border:'2px solid #1A1A1A' }}></div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                <div>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:13, color:'rgba(0,0,0,.5)', margin:0 }}>Halo,</p>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:26, color:'var(--black)', margin:'2px 0 0' }}>{currentUser.username}!</p>
                 </div>
-                <button onClick={handleLogout} title="Keluar" style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 16 }} />
+                <div style={{ display:'flex', gap:8 }}>
+                  <div style={{ width:42, height:42, borderRadius:'50%', background:'var(--yellow)', border:'var(--border)', boxShadow:'var(--shadow)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18 }}>
+                    {currentUser.username.charAt(0).toUpperCase()}
+                  </div>
+                  <button onClick={handleLogout} title="Keluar"
+                    style={{ width:38, height:38, borderRadius:'50%', background:'var(--white)', border:'var(--border)', boxShadow:'var(--shadow)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                    <i className="fa-solid fa-right-from-bracket" style={{ fontSize:15 }} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ margin:'-28px 16px 0' }}>
+              <div className="rcard" style={{ display:'grid', gridTemplateColumns:'1fr 2px 1fr 2px 1fr', padding:0, overflow:'hidden' }}>
+                <div style={{ padding:'12px 8px', textAlign:'center' }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>RENCANA</p>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, color:'var(--black)', margin:0, wordBreak:'break-all' }}>{formatRp(grandPlan)}</p>
+                </div>
+                <div style={{ background:'var(--cream2)' }}></div>
+                <div style={{ padding:'12px 8px', textAlign:'center' }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>TERPAKAI</p>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, color:'var(--lavender)', margin:0, wordBreak:'break-all' }}>{formatRp(grandActual)}</p>
+                </div>
+                <div style={{ background:'var(--cream2)' }}></div>
+                <div style={{ padding:'12px 8px', textAlign:'center' }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>{grandVar >= 0 ? 'SISA' : 'OVER'}</p>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, color: grandVar >= 0 ? 'var(--mint)' : 'var(--red)', margin:0, wordBreak:'break-all' }}>{formatRp(Math.abs(grandVar))}</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ margin:'16px 16px 8px', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }}>
+              {[{id:'semua',label:'Semua'},{id:'selesai',label:'Selesai'},{id:'pending',label:'Pending'}].map(chip => (
+                <button key={chip.id} className={`chip ${activeFilter === chip.id ? 'active' : ''}`} onClick={() => setActiveFilter(chip.id)}>
+                  {chip.label}
                 </button>
-              </div>
-            </div>
-
-            {/* ── Summary Card (floating) ── */}
-            <div style={{ margin: '-28px 16px 0', background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--radius-card)', padding: 16, display: 'grid', gridTemplateColumns: '1fr 1px 1fr 1px 1fr', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-              <div style={{ textAlign: 'center', padding: '0 8px' }}>
-                <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 0 4px' }}>Rencana</p>
-                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0, wordBreak: 'break-all' }}>{formatRp(grandPlan)}</p>
-              </div>
-              <div style={{ background: 'var(--border)', width: 1, alignSelf: 'center', height: 40 }} />
-              <div style={{ textAlign: 'center', padding: '0 8px' }}>
-                <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 0 4px' }}>Terpakai</p>
-                <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--purple)', margin: 0, wordBreak: 'break-all' }}>{formatRp(grandActual)}</p>
-              </div>
-              <div style={{ background: 'var(--border)', width: 1, alignSelf: 'center', height: 40 }} />
-              <div style={{ textAlign: 'center', padding: '0 8px' }}>
-                <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '0 0 4px' }}>{grandVar >= 0 ? 'Sisa' : 'Over'}</p>
-                <p style={{ fontSize: 16, fontWeight: 700, color: grandVar >= 0 ? 'var(--green)' : 'var(--red)', margin: 0, wordBreak: 'break-all' }}>{formatRp(Math.abs(grandVar))}</p>
-              </div>
-            </div>
-
-            {/* ── Filter Chips ── */}
-            <div style={{ margin: '16px 16px 8px', display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
-              {chips.map(chip => (
-                <button key={chip.id} onClick={() => setActiveFilter(chip.id)} style={{
-                  background: activeFilter === chip.id ? 'var(--purple)' : 'var(--surface-2)',
-                  border: `1px solid ${activeFilter === chip.id ? 'var(--purple)' : 'var(--border)'}`,
-                  borderRadius: 99, padding: '6px 14px', fontSize: 13, whiteSpace: 'nowrap',
-                  cursor: 'pointer', color: activeFilter === chip.id ? 'white' : 'var(--text-2)',
-                  fontFamily: 'inherit', fontWeight: activeFilter === chip.id ? 600 : 400, transition: '0.15s'
-                }}>{chip.label}</button>
               ))}
             </div>
 
-            {/* ── Project list ── */}
-            <div style={{ marginTop: 8 }}>
+            <div style={{ padding:'0 16px' }}>
               {filteredProjects.map(proj => {
                 const totalPlan   = calculateTotalPlan(proj.items);
                 const totalActual = calculateTotalActual(proj.items);
@@ -825,61 +641,43 @@
                 const hasOver     = proj.items.some(i => i.status === 'over-budget');
                 const isComplete  = proj.items.length > 0 && proj.items.every(i => i.status !== 'pending');
 
-                let accentColor = 'var(--text-3)';
-                let progressColor = 'var(--text-3)';
-                let badgeClass = 'badge-pending';
-                let badgeLabel = 'Pending';
-
+                let accentColor = '#CCC', progressColor = '#CCC', badgeClass = 'badge-pending', badgeLabel = 'Pending';
                 if (!allPending) {
-                  if (hasOver)       { accentColor = 'var(--red)';    progressColor = 'var(--red)';    badgeClass = 'badge-over';   badgeLabel = 'Over Budget'; }
-                  else if (isComplete){ accentColor = 'var(--green)'; progressColor = 'var(--green)';  badgeClass = 'badge-under';  badgeLabel = 'Selesai'; }
-                  else               { accentColor = 'var(--purple)'; progressColor = 'var(--purple)'; badgeClass = 'badge-on';     badgeLabel = 'On Track'; }
+                  if (hasOver)        { accentColor='var(--red)';      progressColor='var(--red)';      badgeClass='badge-over';  badgeLabel='Over Budget'; }
+                  else if (isComplete){ accentColor='var(--mint)';     progressColor='var(--mint)';     badgeClass='badge-under'; badgeLabel='Selesai'; }
+                  else                { accentColor='var(--lavender)'; progressColor='var(--lavender)'; badgeClass='badge-on';    badgeLabel='On Track'; }
                 }
-
-                const progressPct = totalPlan > 0 ? Math.min((totalActual / totalPlan) * 100, 100) : 0;
+                const progressPct = totalPlan > 0 ? Math.min((totalActual/totalPlan)*100, 100) : 0;
 
                 return (
-                  <div
-                    key={proj.id}
+                  <div key={proj.id}
                     onClick={() => { setActiveProject(proj); setCurrentView('project_detail'); }}
-                    style={{ margin: '0 16px 12px', background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--radius-card)', overflow: 'hidden', cursor: 'pointer', display: 'flex', transition: 'transform 0.1s' }}
-                    onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
-                    onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-                    onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
-                    onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+                    style={{ background:'var(--white)', border:'var(--border)', borderRadius:20, boxShadow:'var(--shadow-lg)', marginBottom:14, cursor:'pointer', display:'flex', overflow:'hidden', transition:'transform .12s' }}
+                    onMouseDown={e => { e.currentTarget.style.transform='scale(0.98)'; e.currentTarget.style.boxShadow='none'; }}
+                    onMouseUp={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='var(--shadow-lg)'; }}
+                    onTouchStart={e => { e.currentTarget.style.transform='scale(0.98)'; e.currentTarget.style.boxShadow='none'; }}
+                    onTouchEnd={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='var(--shadow-lg)'; }}
                   >
-                    {/* Left accent bar */}
-                    <div style={{ width: 4, background: accentColor, flexShrink: 0 }} />
-
-                    {/* Content */}
-                    <div style={{ flex: 1, padding: '14px 14px 14px 12px', minWidth: 0 }}>
-                      {/* Row 1: nama + badge */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                        <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-1)', margin: 0, lineHeight: 1.3, flex: 1 }}>{proj.name}</p>
-                        <span className={`badge-base ${badgeClass}`} style={{ flexShrink: 0 }}>{badgeLabel}</span>
+                    <div style={{ width:8, background:accentColor, flexShrink:0 }}></div>
+                    <div style={{ flex:1, padding:'14px 14px 12px 12px', minWidth:0 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:4 }}>
+                        <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:14, color:'var(--black)', margin:0, lineHeight:1.3, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{proj.name}</p>
+                        <span className={`badge-base ${badgeClass}`} style={{ flexShrink:0 }}>{badgeLabel}</span>
                       </div>
-
-                      {/* Row 2: tanggal */}
-                      <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <i className="fa-solid fa-calendar-day" style={{ fontSize: 11 }} />
-                        {displayDate(proj.startDate, proj.endDate)} · {proj.items.length} item
+                      <p style={{ fontSize:12, color:'#999', margin:'0 0 8px', display:'flex', alignItems:'center', gap:4 }}>
+                        <i className="fa-solid fa-calendar-day" style={{ fontSize:10 }} />
+                        {displayDate(proj.startDate, proj.endDate)} &middot; {proj.items.length} item
                       </p>
-
-                      {/* Row 3: owner (admin, bukan punya sendiri) */}
                       {currentUser.role === 'admin' && proj.owner !== currentUser.username && (
-                        <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '2px 0 0' }}>by @{proj.owner}</p>
+                        <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#AAA', margin:'0 0 6px' }}>by @{proj.owner}</p>
                       )}
-
-                      {/* Row 4: progress bar */}
-                      <div className="progress-track" style={{ marginTop: 10, marginBottom: 8 }}>
-                        <div className="progress-fill" style={{ width: `${progressPct}%`, background: progressColor }} />
+                      <div className="progress-track" style={{ marginBottom:8 }}>
+                        <div className="progress-fill" style={{ width:`${progressPct}%`, background:progressColor }}></div>
                       </div>
-
-                      {/* Row 5: terpakai + variance */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <p style={{ fontSize: 12, color: 'var(--text-2)', margin: 0 }}>Terpakai: {formatRp(totalActual)}</p>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: variance >= 0 ? 'var(--green)' : 'var(--red)', margin: 0 }}>
-                          {variance >= 0 ? 'Sisa' : 'Over'}: {formatRp(Math.abs(variance))}
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <p style={{ fontSize:12, color:'#888', margin:0 }}>Terpakai: {formatRp(totalActual)}</p>
+                        <p style={{ fontFamily:'Space Mono,monospace', fontSize:12, fontWeight:700, color: variance >= 0 ? 'var(--black)' : 'var(--red)', margin:0 }}>
+                          {variance >= 0 ? '+' : '-'}{formatRp(Math.abs(variance))}
                         </p>
                       </div>
                     </div>
@@ -887,25 +685,24 @@
                 );
               })}
 
-              {/* Empty state */}
               {filteredProjects.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ margin: '0 auto', display: 'block' }}>
-                    <rect x="10" y="18" width="44" height="34" rx="5" stroke="var(--text-3)" strokeWidth="2" fill="none"/>
-                    <path d="M22 30h20M22 38h14" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M24 18v-3a8 8 0 0116 0v3" stroke="var(--text-3)" strokeWidth="2" strokeLinecap="round"/>
+                <div style={{ textAlign:'center', padding:'48px 20px' }}>
+                  <svg width="90" height="90" viewBox="0 0 90 90" fill="none" style={{ margin:'0 auto 16px', display:'block' }}>
+                    <rect x="12" y="18" width="66" height="58" rx="10" fill="var(--lav-bg)" stroke="#1A1A1A" strokeWidth="2"/>
+                    <rect x="20" y="28" width="50" height="6" rx="3" fill="var(--lavender)" stroke="#1A1A1A" strokeWidth="1"/>
+                    <circle cx="66" cy="26" r="13" fill="var(--yellow)" stroke="#1A1A1A" strokeWidth="2"/>
+                    <text x="66" y="31" textAnchor="middle" fontFamily="Space Mono" fontWeight="700" fontSize="16" fill="#1A1A1A">+</text>
                   </svg>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: '16px 0 0' }}>Belum ada trip</p>
-                  <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '4px 0 0' }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:16, margin:'0 0 4px' }}>Belum ada trip</p>
+                  <p style={{ fontSize:13, color:'#999' }}>
                     {activeFilter === 'semua' ? 'Buat trip pertamamu sekarang' : `Tidak ada trip dengan filter "${activeFilter}"`}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* ── FAB ── */}
             <button className="fab no-print" onClick={() => setShowNewProjectModal(true)}>
-              <i className="fa-solid fa-plus" /> Trip Baru
+              <i className="fa-solid fa-plus"></i> Trip Baru
             </button>
           </div>
         );
@@ -916,17 +713,15 @@
         const totalActual = calculateTotalActual(activeProject.items);
         const variance = totalPlan - totalActual;
 
-        // Local state untuk field teks — hanya simpan ke Supabase saat onBlur
         const [localName, setLocalName] = useState(activeProject.name);
         const [localTarget, setLocalTarget] = useState(activeProject.target || '');
 
         const handleExportCSV = () => {
-          let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+          let csvContent = "data:text/csv;charset=utf-8,﻿";
           csvContent += `Event / Trip:,${activeProject.name}\n`;
           csvContent += `Pembuat:,${activeProject.owner}\n`;
           csvContent += `Tanggal:,${displayDate(activeProject.startDate, activeProject.endDate)}\n`;
           csvContent += `Target:,${(activeProject.target || '').replace(/,/g, ";")}\n\n`;
-
           csvContent += "No,Item,Qty,Unit,Budget Satuan,Total Rencana,Total Aktual (LPJ),Sisa/Over,Status,Keterangan\n";
           activeProject.items.forEach((item, index) => {
             const plan = item.qty * item.budget;
@@ -934,9 +729,8 @@
             const varianceItem = plan - actual;
             const notes = (item.notes || '').replace(/,/g, ";");
             const name = (item.name || '').replace(/,/g, ";");
-            csvContent += `${index + 1},${name},${item.qty},${item.unit},${item.budget},${plan},${actual},${varianceItem},${item.status},${notes}\n`;
+            csvContent += `${index+1},${name},${item.qty},${item.unit},${item.budget},${plan},${actual},${varianceItem},${item.status},${notes}\n`;
           });
-
           csvContent += "\n\n--- DETAIL TRANSAKSI AKTUAL ---\n";
           csvContent += "Item Budget,Nominal (Rp),Keterangan Transaksi\n";
           let hasDetails = false;
@@ -949,7 +743,6 @@
             }
           });
           if (!hasDetails) csvContent += "Belum ada transaksi aktual\n";
-
           const encodedUri = encodeURI(csvContent);
           const link = document.createElement("a");
           link.setAttribute("href", encodedUri);
@@ -959,203 +752,184 @@
           document.body.removeChild(link);
         };
 
-        // Jika bukan pembuat (dan admin), disable edit
         const isReadonly = currentUser.role === 'admin' && activeProject.owner !== currentUser.username;
 
         return (
-          <div className="pb-28 animate-fade-in bg-gray-50 min-h-screen">
-            <div className="sticky top-0 bg-white z-20 px-4 py-4 border-b border-gray-100 flex items-center justify-between shadow-sm no-print">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <button onClick={() => setCurrentView('dashboard')} className="p-2 -ml-2 bg-gray-50 text-gray-600 rounded-full active:bg-gray-200 shrink-0">
-                  <ArrowLeft size={20} />
+          <div style={{ background:'var(--cream)', minHeight:'100vh', paddingBottom:100 }} className="animate-fade-in">
+            <div style={{ background:'var(--lav-bg)', borderBottom:'var(--border)', padding:'52px 16px 16px', position:'relative' }}>
+              <div style={{ position:'absolute', top:18, right:60, width:12, height:12, borderRadius:'50%', background:'var(--yellow)', border:'2px solid #1A1A1A' }}></div>
+              <div style={{ position:'absolute', top:32, right:44, width:7, height:7, borderRadius:'50%', background:'var(--mint)', border:'2px solid #1A1A1A' }}></div>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <button onClick={() => setCurrentView('dashboard')}
+                  style={{ width:36, height:36, borderRadius:'50%', background:'var(--white)', border:'var(--border)', boxShadow:'var(--shadow)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <i className="fa-solid fa-arrow-left" style={{ fontSize:14 }} />
                 </button>
-                <h2 className="font-bold text-gray-800 text-lg truncate">{activeProject.name || 'Project Baru'}</h2>
+                <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', margin:0 }}>
+                  {activeProject.name || 'Project Baru'}
+                </p>
+                {isReadonly && (
+                  <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, fontWeight:700, background:'var(--yellow)', border:'var(--border)', borderRadius:99, padding:'3px 10px', flexShrink:0 }}>READ-ONLY</span>
+                )}
               </div>
-              
+            </div>
+
+            <div style={{ margin:'16px 16px 0' }}>
+              <div className="rcard" style={{ display:'grid', gridTemplateColumns:'1fr 2px 1fr 2px 1fr', padding:0, overflow:'hidden' }}>
+                <div style={{ padding:'12px 8px', textAlign:'center' }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>RENCANA</p>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:12, color:'var(--black)', margin:0, wordBreak:'break-all' }}>{formatRp(totalPlan)}</p>
+                </div>
+                <div style={{ background:'var(--cream2)' }}></div>
+                <div style={{ padding:'12px 8px', textAlign:'center' }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>TERPAKAI</p>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:12, color:'var(--lavender)', margin:0, wordBreak:'break-all' }}>{formatRp(totalActual)}</p>
+                </div>
+                <div style={{ background:'var(--cream2)' }}></div>
+                <div style={{ padding:'12px 8px', textAlign:'center' }}>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>{variance >= 0 ? 'SISA' : 'OVER'}</p>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:12, color: variance >= 0 ? 'var(--mint)' : 'var(--red)', margin:0, wordBreak:'break-all' }}>{formatRp(Math.abs(variance))}</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding:'12px 16px 0', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }} className="no-print">
+              <button className="rbtn rbtn-lav" style={{ height:36, padding:'0 14px', fontSize:12, flexShrink:0 }} onClick={() => setShowFullReportSidebar(true)}>
+                <i className="fa-solid fa-file-lines" style={{ fontSize:12 }}></i> Laporan
+              </button>
+              <button className="rbtn rbtn-white" style={{ height:36, padding:'0 14px', fontSize:12, flexShrink:0 }} onClick={handleExportCSV}>
+                <i className="fa-solid fa-table" style={{ fontSize:12 }}></i> Export
+              </button>
               {!isReadonly && (
-                <button 
-                  onClick={() => triggerDelete('project', activeProject.id, 'Hapus Event Ini?', 'Seluruh rincian biaya dan struk LPJ akan terhapus secara permanen. Lanjutkan?')}
-                  className="w-9 h-9 flex justify-center items-center rounded-full text-red-500 bg-red-50 hover:bg-red-100 shrink-0"
-                >
-                  <Trash2 size={16} />
+                <button className="rbtn rbtn-red" style={{ height:36, padding:'0 14px', fontSize:12, flexShrink:0 }}
+                  onClick={() => triggerDelete('project', activeProject.id, 'Hapus Event Ini?', 'Seluruh rincian biaya dan struk LPJ akan terhapus secara permanen. Lanjutkan?')}>
+                  <Trash2 size={12} /> Hapus
                 </button>
               )}
             </div>
 
-            <div className="bg-white p-4 border-b border-gray-100 space-y-4 shadow-sm">
-              <div>
-                <label htmlFor="detail-name" className="block text-xs font-bold text-blue-600 uppercase mb-1">Nama Event / Trip</label>
-                <input
-                  id="detail-name"
-                  name="detail-name"
-                  type="text"
-                  value={localName}
-                  onChange={(e) => setLocalName(e.target.value)}
-                  onBlur={() => { if (localName !== activeProject.name) handleUpdateProjectInfo('name', localName); }}
-                  className="w-full text-base font-semibold text-gray-800 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none"
-                  placeholder="Contoh: Kunjungan Jkt"
-                  disabled={isReadonly}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="detail-start" className="block text-xs font-bold text-blue-600 uppercase mb-1">Mulai</label>
-                  <input id="detail-start" name="detail-start" type="date" value={activeProject.startDate || ''} onChange={(e) => handleUpdateProjectInfo('startDate', e.target.value)}
-                    className="w-full text-sm text-gray-700 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none" disabled={isReadonly} />
+            <div style={{ margin:'12px 16px 0' }}>
+              <div className="rcard" style={{ padding:16 }}>
+                <div style={{ marginBottom:14 }}>
+                  <label className="rlabel" htmlFor="detail-name">NAMA EVENT / TRIP</label>
+                  <input id="detail-name" name="detail-name" type="text" className="rinput"
+                    value={localName}
+                    onChange={(e) => setLocalName(e.target.value)}
+                    onBlur={() => { if (localName !== activeProject.name) handleUpdateProjectInfo('name', localName); }}
+                    placeholder="Contoh: Kunjungan Jkt" disabled={isReadonly} />
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
+                  <div>
+                    <label className="rlabel" htmlFor="detail-start">MULAI</label>
+                    <input id="detail-start" name="detail-start" type="date" className="rinput"
+                      value={activeProject.startDate || ''} onChange={(e) => handleUpdateProjectInfo('startDate', e.target.value)} disabled={isReadonly} />
+                  </div>
+                  <div>
+                    <label className="rlabel" htmlFor="detail-end">SELESAI</label>
+                    <input id="detail-end" name="detail-end" type="date" className="rinput"
+                      value={activeProject.endDate || ''} onChange={(e) => handleUpdateProjectInfo('endDate', e.target.value)} disabled={isReadonly} />
+                  </div>
                 </div>
                 <div>
-                  <label htmlFor="detail-end" className="block text-xs font-bold text-blue-600 uppercase mb-1">Selesai</label>
-                  <input id="detail-end" name="detail-end" type="date" value={activeProject.endDate || ''} onChange={(e) => handleUpdateProjectInfo('endDate', e.target.value)}
-                    className="w-full text-sm text-gray-700 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none" disabled={isReadonly} />
+                  <label className="rlabel" htmlFor="detail-target">TARGET / TUJUAN</label>
+                  <textarea id="detail-target" name="detail-target" className="rtextarea"
+                    value={localTarget}
+                    onChange={(e) => setLocalTarget(e.target.value)}
+                    onBlur={() => { if (localTarget !== (activeProject.target || '')) handleUpdateProjectInfo('target', localTarget); }}
+                    rows="2" placeholder="Tujuan perjalanan..." disabled={isReadonly} />
                 </div>
-              </div>
-
-              <div>
-                <label htmlFor="detail-target" className="block text-xs font-bold text-blue-600 uppercase mb-1">Target / Tujuan</label>
-                <textarea
-                  id="detail-target"
-                  name="detail-target"
-                  value={localTarget}
-                  onChange={(e) => setLocalTarget(e.target.value)}
-                  onBlur={() => { if (localTarget !== (activeProject.target || '')) handleUpdateProjectInfo('target', localTarget); }}
-                  className="w-full text-sm text-gray-700 border-b-2 border-gray-100 focus:border-blue-500 py-1 focus:outline-none resize-none"
-                  rows="2"
-                  placeholder="Tujuan perjalanan..."
-                  disabled={isReadonly}
-                />
               </div>
             </div>
 
-            <div className="p-4">
-              <div className="grid grid-cols-2 gap-3 mb-3 no-print">
-                <div className="bg-blue-50 rounded-2xl p-3 border border-blue-100">
-                  <p className="text-[10px] text-blue-600 font-bold uppercase mb-1">Rencana</p>
-                  <p className="text-sm font-bold text-gray-800">{formatRp(totalPlan)}</p>
-                </div>
-                <div className="bg-purple-50 rounded-2xl p-3 border border-purple-100">
-                  <p className="text-[10px] text-purple-600 font-bold uppercase mb-1">Aktual (LPJ)</p>
-                  <p className="text-sm font-bold text-gray-800">{formatRp(totalActual)}</p>
-                </div>
-              </div>
-              <div className={`${variance >= 0 ? 'bg-green-500' : 'bg-red-500'} rounded-2xl p-4 text-white flex justify-between items-center shadow-sm`}>
-                <div>
-                  <p className="text-xs font-medium opacity-90 uppercase tracking-wider">
-                    {variance >= 0 ? 'Sisa Dana (Aman)' : 'Over Budget (Minus)'}
-                  </p>
-                  <p className="text-lg font-bold mt-0.5">
-                    {formatRp(Math.abs(variance))}
-                  </p>
-                </div>
-                <div className="bg-white/20 p-2 rounded-full no-print">
-                  {variance >= 0 ? <TrendingDown size={24}/> : <TrendingUp size={24}/>}
-                </div>
+            <div style={{ padding:'16px 16px 0' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+                <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, margin:0 }}>Rincian Budget</p>
+                <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700, background:'var(--cream2)', border:'1.5px solid #CCC', borderRadius:99, padding:'3px 10px' }}>
+                  {activeProject.items.length} Item
+                </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mt-4 no-print">
-                <button onClick={() => setShowFullReportSidebar(true)} className="flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold active:bg-blue-700 shadow-sm">
-                  <FileInvoice size={16} /> Detail Laporan
-                </button>
-                <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 bg-green-600 text-white py-2.5 rounded-xl text-sm font-bold active:bg-green-700 shadow-sm">
-                  <Download size={16} /> Export Excel
-                </button>
-              </div>
-            </div>
-
-            <div className="px-4 mt-6">
-              <h3 className="font-bold text-gray-700 mb-3 flex items-center justify-between">
-                <span>Rincian Budget</span>
-                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">{activeProject.items.length} Item</span>
-              </h3>
-              
-              <div className="space-y-3">
-                {activeProject.items.map((item, index) => {
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                {activeProject.items.map((item) => {
                   const itemPlanTotal = item.qty * item.budget;
+                  const itemActual = getItemActualTotal(item);
+                  const itemProgress = itemPlanTotal > 0 ? Math.min((itemActual/itemPlanTotal)*100, 100) : 0;
+                  const slab = item.status === 'under-budget' ? 'var(--mint)' : item.status === 'over-budget' ? 'var(--red)' : item.status === 'on-budget' ? 'var(--lavender)' : '#CCC';
+
                   return (
-                    <div 
-                      key={item.id} 
+                    <div key={item.id}
                       onClick={() => { setSelectedItem(item); setShowDetailSidebar(true); }}
-                      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform group"
+                      style={{ background:'var(--white)', border:'var(--border)', borderRadius:16, boxShadow:'var(--shadow-lg)', cursor:'pointer', display:'flex', overflow:'hidden', transition:'transform .12s' }}
+                      onMouseDown={e => e.currentTarget.style.transform='scale(0.98)'}
+                      onMouseUp={e => e.currentTarget.style.transform=''}
+                      onTouchStart={e => e.currentTarget.style.transform='scale(0.98)'}
+                      onTouchEnd={e => e.currentTarget.style.transform=''}
                     >
-                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                        item.status === 'under-budget' ? 'bg-green-500' : 
-                        item.status === 'over-budget' ? 'bg-red-500' : 
-                        item.status === 'on-budget' ? 'bg-blue-500' : 'bg-gray-300'
-                      }`}></div>
-
-                      {!isReadonly && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); triggerDelete('item', item.id, 'Hapus Item Biaya?', `Anda yakin ingin menghapus '${item.name}' beserta seluruh struknya?`); }}
-                          className="absolute top-3 right-3 p-2 bg-red-50 text-red-400 rounded-full hover:bg-red-100 hover:text-red-600 z-10"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-
-                      <div className="flex justify-between items-start mb-1 pl-2 pr-8">
-                        <div>
-                          <h4 className="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">{item.name}</h4>
-                          <p className="text-xs text-gray-500 mt-0.5">{item.qty} {item.unit} x {formatRp(item.budget)}</p>
+                      <div style={{ width:8, background:slab, flexShrink:0 }}></div>
+                      <div style={{ flex:1, padding:'12px 12px 12px 10px', minWidth:0 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:4 }}>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:14, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.name}</p>
+                            <p style={{ fontSize:11, color:'#999', margin:'2px 0 0' }}>{item.qty} {item.unit} &times; {formatRp(item.budget)}</p>
+                          </div>
+                          <span className={`badge-base ${item.status === 'under-budget' ? 'badge-under' : item.status === 'over-budget' ? 'badge-over' : item.status === 'on-budget' ? 'badge-on' : 'badge-pending'}`} style={{ flexShrink:0 }}>
+                            {item.status === 'pending' ? 'Pending' : item.status === 'under-budget' ? 'Under' : item.status === 'on-budget' ? 'On Budget' : 'Over'}
+                          </span>
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-2 pl-2 mt-2">
-                        {item.actuals && item.actuals.length > 0 && (
-                          <div className="flex -space-x-2">
+                        <div className="progress-track" style={{ margin:'8px 0' }}>
+                          <div className="progress-fill" style={{ width:`${itemProgress}%`, background: item.status === 'over-budget' ? 'var(--red)' : item.status === 'pending' ? '#CCC' : 'var(--mint)' }}></div>
+                        </div>
+
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12, marginBottom:6 }}>
+                          <span style={{ color:'#999' }}>Aktual ({item.actuals?.length || 0} Trx)</span>
+                          <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700, color: item.status === 'pending' ? '#AAA' : item.status === 'over-budget' ? 'var(--red)' : 'var(--black)' }}>
+                            {item.status === 'pending' ? 'Belum Input' : formatRp(itemActual)}
+                          </span>
+                        </div>
+
+                        {item.actuals && item.actuals.filter(a => a.receiptUrl).length > 0 && (
+                          <div style={{ display:'flex', marginBottom:6 }}>
                             {item.actuals.filter(a => a.receiptUrl).slice(0,3).map((act, idx) => (
-                                <div key={idx} className="w-8 h-8 rounded-full border-2 border-white bg-green-50 flex items-center justify-center text-green-600 overflow-hidden shadow-sm" title={act.description || 'Struk'}>
-                                  <img src={act.receiptUrl} className="w-full h-full object-cover" alt="struk"/>
-                                </div>
+                              <div key={idx} style={{ width:28, height:28, borderRadius:'50%', border:'2px solid var(--black)', overflow:'hidden', marginLeft: idx===0 ? 0 : -8, background:'var(--cream2)' }}>
+                                <img src={act.receiptUrl} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="struk" />
+                              </div>
                             ))}
                             {item.actuals.filter(a => a.receiptUrl).length > 3 && (
-                                <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 z-10 shadow-sm">
-                                  +{item.actuals.filter(a => a.receiptUrl).length - 3}
-                                </div>
+                              <div style={{ width:28, height:28, borderRadius:'50%', border:'2px solid var(--black)', marginLeft:-8, background:'var(--cream2)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Space Mono,monospace', fontSize:9, fontWeight:700 }}>
+                                +{item.actuals.filter(a => a.receiptUrl).length - 3}
+                              </div>
                             )}
                           </div>
                         )}
-                      </div>
-                      
-                      {item.notes && <p className="text-xs text-gray-500 pl-2 mt-2 italic">Ket: {item.notes}</p>}
 
-                      <div className="bg-gray-50 rounded-xl p-3 mt-3 pl-2">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs text-gray-500">Plan:</span>
-                          <span className="text-xs font-semibold text-gray-700">{formatRp(itemPlanTotal)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs text-gray-500">Aktual ({item.actuals?.length || 0} Trx):</span>
-                          <span className={`text-sm font-bold ${
-                            item.status === 'pending' ? 'text-gray-400' : 
-                            item.status === 'over-budget' ? 'text-red-600' : 'text-green-600'
-                          }`}>
-                            {item.status === 'pending' ? 'Belum Input' : formatRp(getItemActualTotal(item))}
-                          </span>
-                        </div>
-                      </div>
+                        {item.notes && <p style={{ fontSize:11, color:'#999', fontStyle:'italic', marginBottom:6 }}>Ket: {item.notes}</p>}
 
-                      {!isReadonly && (
-                        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100 pl-2 no-print">
-                          <button onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowActualModal(true); }} className="flex-1 bg-purple-100 text-purple-700 py-2.5 rounded-xl text-xs font-bold active:bg-purple-200 transition-colors flex items-center justify-center gap-1">
-                            <Camera size={14} /> Input Aktual
-                          </button>
-                          <button onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowItemModal(true); }} className="px-4 bg-gray-100 text-gray-700 py-2.5 rounded-xl text-xs font-bold active:bg-gray-200 transition-colors">
-                            Edit
-                          </button>
-                        </div>
-                      )}
+                        {!isReadonly && (
+                          <div style={{ display:'flex', gap:8, paddingTop:10, borderTop:'1.5px solid var(--cream2)' }} className="no-print">
+                            <button className="rbtn rbtn-mint" style={{ flex:1, height:34, fontSize:11, borderRadius:10 }}
+                              onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowActualModal(true); }}>
+                              <Camera size={12} /> Input Aktual
+                            </button>
+                            <button className="rbtn rbtn-white" style={{ width:36, height:34, borderRadius:10, padding:0 }}
+                              onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowItemModal(true); }}>
+                              <FAIcon name="pen" size={12} />
+                            </button>
+                            <button className="rbtn rbtn-red" style={{ width:36, height:34, borderRadius:10, padding:0 }}
+                              onClick={(e) => { e.stopPropagation(); triggerDelete('item', item.id, 'Hapus Item Biaya?', `Anda yakin ingin menghapus '${item.name}' beserta seluruh struknya?`); }}>
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
 
             {!isReadonly && (
-              <button 
-                onClick={() => { setSelectedItem(null); setShowItemModal(true); }}
-                className="fixed bottom-6 right-1/2 translate-x-1/2 bg-gray-900 text-white px-6 py-3.5 rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.3)] flex items-center gap-2 z-30 font-semibold text-sm w-max active:scale-95 transition-transform no-print"
-              >
-                <Plus size={20} /> Tambah Biaya
+              <button className="fab no-print" onClick={() => { setSelectedItem(null); setShowItemModal(true); }}>
+                <Plus size={18} /> Item
               </button>
             )}
           </div>
@@ -1163,53 +937,47 @@
       };
 
       const ItemPlanModal = () => {
-        const [formData, setFormData] = useState(selectedItem || { name: '', qty: 1, unit: 'orang', budget: 0, notes: '' });
+        const [formData, setFormData] = useState(selectedItem || { name:'', qty:1, unit:'orang', budget:0, notes:'' });
 
         return (
-          <div className="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end animate-fade-in no-print">
-            <div className="absolute inset-0" onClick={() => setShowItemModal(false)}></div>
-            <div className="bg-white rounded-t-3xl w-full max-h-[90vh] overflow-y-auto relative z-10 animate-slide-up shadow-2xl">
-              <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-3xl">
-                <h3 className="font-bold text-gray-800 text-lg">
-                  {selectedItem ? 'Edit Rencana Biaya' : 'Tambah Rencana'}
-                </h3>
-              </div>
-              
-              <div className="p-6 space-y-5 pb-8">
-                <div>
-                  <label htmlFor="item-name" className="block text-xs font-bold text-gray-500 uppercase mb-2">Nama Item / Pengeluaran</label>
-                  <input id="item-name" name="item-name" type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
-                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Cth: Tiket Pesawat, Hotel..." />
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="item-qty" className="block text-xs font-bold text-gray-500 uppercase mb-2">Jml / Qty</label>
-                    <input id="item-qty" name="item-qty" type="number" min="1" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.5)', zIndex:100, display:'flex', alignItems:'flex-end', animation:'fadeIn .2s ease' }} className="no-print" onClick={() => setShowItemModal(false)}>
+            <div className="sheet animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="sheet-handle"></div>
+              <div className="sheet-title">{selectedItem ? 'EDIT RENCANA' : 'TAMBAH RENCANA'}</div>
+              <div className="sheet-scroll">
+                <label className="rlabel" htmlFor="item-name">NAMA ITEM / PENGELUARAN</label>
+                <input id="item-name" name="item-name" className="rinput" style={{ marginBottom:14 }}
+                  value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Cth: Tiket Pesawat, Hotel..." />
+
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:12, marginBottom:14 }}>
+                  <div>
+                    <label className="rlabel" htmlFor="item-qty">QTY</label>
+                    <input id="item-qty" name="item-qty" type="number" min="1" className="rinput"
                       value={formData.qty || ''} onChange={e => setFormData({...formData, qty: Number(e.target.value)})} />
                   </div>
-                  <div className="flex-[2]">
-                    <label htmlFor="item-unit" className="block text-xs font-bold text-gray-500 uppercase mb-2">Satuan</label>
-                    <input id="item-unit" name="item-unit" type="text" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none"
+                  <div>
+                    <label className="rlabel" htmlFor="item-unit">SATUAN</label>
+                    <input id="item-unit" name="item-unit" className="rinput"
                       value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} placeholder="org / mlm / tiket" />
                   </div>
                 </div>
-                <div>
-                  <label htmlFor="item-budget" className="block text-xs font-bold text-gray-500 uppercase mb-2">Budget Satuan (Rp)</label>
-                  <input id="item-budget" name="item-budget" type="number" className="w-full border-2 border-gray-200 rounded-xl p-3 text-base font-bold focus:border-blue-500 outline-none"
-                    value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} placeholder="0" />
+
+                <label className="rlabel" htmlFor="item-budget">BUDGET SATUAN (Rp)</label>
+                <input id="item-budget" name="item-budget" type="number" className="rinput" style={{ marginBottom:14 }}
+                  value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} placeholder="0" />
+
+                <div className="rcard-sm" style={{ padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14, background:'var(--mint-bg)' }}>
+                  <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, color:'#555' }}>TOTAL RENCANA</span>
+                  <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18 }}>{formatRp((formData.qty||0)*(formData.budget||0))}</span>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-2xl flex justify-between items-center">
-                  <span className="text-xs font-bold text-blue-600 uppercase">Total Plan</span>
-                  <span className="font-black text-xl text-blue-700">{formatRp((formData.qty || 0) * (formData.budget || 0))}</span>
-                </div>
-                <div>
-                  <label htmlFor="item-notes" className="block text-xs font-bold text-gray-500 uppercase mb-2">Catatan Tambahan (Opsional)</label>
-                  <textarea id="item-notes" name="item-notes" className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-blue-500 outline-none resize-none"
-                    rows="2" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Untuk siapa/keperluan spesifik..." />
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button onClick={() => setShowItemModal(false)} className="flex-1 py-3.5 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
-                  <button onClick={() => handleSaveItem(formData)} className="flex-[2] py-3.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-md active:bg-blue-700">Simpan Rencana</button>
+
+                <label className="rlabel" htmlFor="item-notes">CATATAN (OPSIONAL)</label>
+                <textarea id="item-notes" name="item-notes" className="rtextarea" style={{ marginBottom:20 }}
+                  rows="2" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Untuk siapa/keperluan spesifik..." />
+
+                <div style={{ display:'flex', gap:10 }}>
+                  <button className="rbtn rbtn-white" style={{ flex:1, height:48 }} onClick={() => setShowItemModal(false)}>BATAL</button>
+                  <button className="rbtn rbtn-black" style={{ flex:2, height:48 }} onClick={() => handleSaveItem(formData)}>SIMPAN RENCANA</button>
                 </div>
               </div>
             </div>
@@ -1230,206 +998,144 @@
 
         const handleFileChange = (e) => {
           const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setReceiptUrl(reader.result);
-            reader.readAsDataURL(file);
-          }
+          if (file) { const reader = new FileReader(); reader.onloadend = () => setReceiptUrl(reader.result); reader.readAsDataURL(file); }
         };
 
         const handleAddTransaction = async () => {
           const numericAmount = Number(newAmount.replace(/\./g, ''));
           if (!numericAmount || numericAmount <= 0) return;
-
           setIsUploading(true);
           let finalUrl = receiptUrl;
-
           try {
             if (receiptUrl && receiptUrl.startsWith('data:')) {
               const res = await fetch(receiptUrl);
               const blob = await res.blob();
               const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}.jpg`;
-              
-              const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, {
-                contentType: 'image/jpeg'
-              });
-              
+              const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, { contentType:'image/jpeg' });
               if (error) throw error;
               const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
               finalUrl = publicUrlData.publicUrl;
             }
-
-            const newAct = {
-              id: Date.now().toString(),
-              amount: numericAmount,
-              description: newDesc,
-              receiptUrl: finalUrl
-            };
+            const newAct = { id: Date.now().toString(), amount: numericAmount, description: newDesc, receiptUrl: finalUrl };
             setActuals([...actuals, newAct]);
-            setNewAmount('');
-            setNewDesc('');
-            setReceiptUrl(null);
-          } catch (error) {
-            alert("Gagal mengunggah foto.");
-            console.error(error);
-          }
+            setNewAmount(''); setNewDesc(''); setReceiptUrl(null);
+          } catch (error) { alert("Gagal mengunggah foto."); console.error(error); }
           setIsUploading(false);
         };
 
         return (
-          <div className="fixed inset-0 bg-black/70 z-[40] flex flex-col justify-end animate-fade-in no-print">
-            <div className="absolute inset-0" onClick={() => setShowActualModal(false)}></div>
-            <div className="bg-white rounded-t-3xl w-full max-h-[95vh] flex flex-col relative z-10 animate-slide-up shadow-2xl">
-              <div className="bg-white px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-3xl flex-shrink-0">
-                <div>
-                  <p className="text-[10px] uppercase font-bold text-purple-600 mb-0.5">Kelola Transaksi LPJ</p>
-                  <h3 className="font-bold text-gray-800 line-clamp-1">{selectedItem?.name}</h3>
-                </div>
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.55)', zIndex:100, display:'flex', alignItems:'flex-end', animation:'fadeIn .2s ease' }} className="no-print" onClick={() => setShowActualModal(false)}>
+            <div className="sheet animate-slide-up" style={{ maxHeight:'95vh' }} onClick={e => e.stopPropagation()}>
+              <div className="sheet-handle"></div>
+              <div style={{ padding:'0 20px', marginBottom:14, flexShrink:0 }}>
+                <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 2px' }}>KELOLA TRANSAKSI LPJ</p>
+                <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:17, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{selectedItem?.name}</p>
               </div>
-              
-              <div className="p-6 overflow-y-auto space-y-6">
-                <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100">
-                  <div className="flex justify-between items-center mb-2 text-xs">
-                    <span className="font-bold text-gray-500 uppercase">Budget</span>
-                    <span className="font-bold text-gray-800">{formatRp(plannedTotal)}</span>
+
+              <div className="sheet-scroll" style={{ paddingTop:0 }}>
+                <div className="rcard-sm" style={{ padding:'12px 14px', marginBottom:14, background:'var(--mint-bg)' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#555' }}>RENCANA</span>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13 }}>{formatRp(plannedTotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center mb-2 text-xs">
-                    <span className="font-bold text-gray-500 uppercase">Total Terpakai</span>
-                    <span className="font-bold text-purple-700">{formatRp(draftTotal)}</span>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#555' }}>TERPAKAI</span>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, color:'var(--lavender)' }}>{formatRp(draftTotal)}</span>
                   </div>
-                  <div className={`pt-2 border-t border-purple-200 flex justify-between items-center text-xs font-bold ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    <span>{variance >= 0 ? 'Sisa Budget:' : 'Over Budget:'}</span>
+                  <div style={{ borderTop:'1.5px solid rgba(0,0,0,.1)', paddingTop:6, display:'flex', justifyContent:'space-between', fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:12, color: variance >= 0 ? 'var(--black)' : 'var(--red)' }}>
+                    <span>{variance >= 0 ? 'SISA:' : 'OVER:'}</span>
                     <span>{formatRp(Math.abs(variance))}</span>
                   </div>
                 </div>
 
-        {actuals.length > 0 && (
-        <div className="space-y-3">
-            {actuals.map((act) => (
-            <div key={act.id} className="bg-white border border-gray-200 rounded-xl p-3 flex gap-3 items-center shadow-sm">
-                {/* BAGIAN PREVIEW GAMBAR DI LIST */}
-                {act.receiptUrl ? (
-                <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
-                    <img src={act.receiptUrl} className="w-full h-full object-cover" alt="struk" />
-                </div>
-                ) : (
-                <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0">
-                    <i className="fa-solid fa-file-invoice text-xl"></i>
-                </div>
+                {actuals.length > 0 && (
+                  <div style={{ marginBottom:14, display:'flex', flexDirection:'column', gap:8 }}>
+                    {actuals.map((act) => (
+                      <div key={act.id} className="rcard-sm" style={{ display:'flex', gap:10, alignItems:'center', padding:10 }}>
+                        {act.receiptUrl ? (
+                          <div style={{ width:44, height:44, borderRadius:8, overflow:'hidden', border:'var(--border)', flexShrink:0 }}>
+                            <img src={act.receiptUrl} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="struk" />
+                          </div>
+                        ) : (
+                          <div style={{ width:44, height:44, borderRadius:8, background:'var(--cream2)', border:'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                            <i className="fa-solid fa-file-invoice" style={{ fontSize:18, color:'#AAA' }}></i>
+                          </div>
+                        )}
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, margin:0 }}>{formatRp(act.amount)}</p>
+                          <p style={{ fontSize:11, color:'#999', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{act.description || 'Tanpa keterangan'}</p>
+                        </div>
+                        <button onClick={() => setActuals(actuals.filter(a => a.id !== act.id))}
+                          style={{ color:'var(--red)', padding:6, background:'var(--red-bg)', border:'1.5px solid var(--red)', borderRadius:8, cursor:'pointer' }}>
+                          <i className="fa-solid fa-trash-can" style={{ fontSize:12 }}></i>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-                
-                <div className="flex-1 min-w-0">
-                <p className="font-bold text-gray-800 text-sm">{formatRp(act.amount)}</p>
-                <p className="text-xs text-gray-500 truncate">{act.description || 'Tanpa keterangan'}</p>
-                </div>
-                
-                <button onClick={() => setActuals(actuals.filter(a => a.id !== act.id))} className="p-2 text-red-500">
-                <i className="fa-solid fa-trash-can"></i>
-                </button>
-            </div>
-            ))}
-        </div>
-        )}
 
-                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-4">
-                  <div>
-                    <label htmlFor="trx-amount" className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Nominal (Rp)</label>
-                    <input
-                      id="trx-amount"
-                      name="trx-amount"
-                      type="text"
-                      inputMode="numeric"
-                      className="w-full border-2 border-gray-200 rounded-xl p-3 text-lg font-black text-gray-800 focus:border-purple-500 outline-none"
-                      value={newAmount}
-                      onChange={e => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        setNewAmount(raw === '' ? '' : parseInt(raw).toLocaleString('id-ID'));
-                      }}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="trx-desc" className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Keterangan</label>
-                    <input
-                      id="trx-desc"
-                      name="trx-desc"
-                      type="text"
-                      className="w-full border-2 border-gray-200 rounded-xl p-3 text-sm focus:border-purple-500 outline-none"
-                      value={newDesc}
-                      onChange={e => setNewDesc(e.target.value)}
-                      placeholder="Cth: Bayar tol, makan siang..."
-                    />
-                  </div>
+                <div className="rcard-sm" style={{ padding:14, marginBottom:14 }}>
+                  <label className="rlabel" htmlFor="trx-amount">NOMINAL (Rp)</label>
+                  <input id="trx-amount" name="trx-amount" type="text" inputMode="numeric" className="rinput" style={{ marginBottom:12 }}
+                    value={newAmount}
+                    onChange={e => { const raw = e.target.value.replace(/\D/g,''); setNewAmount(raw === '' ? '' : parseInt(raw).toLocaleString('id-ID')); }}
+                    placeholder="0" />
 
-                  {/* Preview Foto — tampil saat foto sudah dipilih, gantikan tombol kamera/galeri */}
+                  <label className="rlabel" htmlFor="trx-desc">KETERANGAN</label>
+                  <input id="trx-desc" name="trx-desc" type="text" className="rinput" style={{ marginBottom:12 }}
+                    value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Cth: Bayar tol, makan siang..." />
+
                   {receiptUrl ? (
-                    <div className="relative rounded-xl overflow-hidden border-2 border-purple-300 shadow-sm">
-                      <img src={receiptUrl} className="w-full h-48 object-cover" alt="preview foto struk" />
-                      <div className="absolute top-2 left-2 bg-green-500 text-white text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 shadow">
-                        <FAIcon name="circle-check" size={10} /> Foto siap diunggah
+                    <div style={{ position:'relative', borderRadius:10, overflow:'hidden', border:'var(--border)', marginBottom:12 }}>
+                      <img src={receiptUrl} style={{ width:'100%', height:160, objectFit:'cover', display:'block' }} alt="preview" />
+                      <div style={{ position:'absolute', top:8, left:8, background:'var(--mint)', border:'var(--border)', borderRadius:99, padding:'3px 10px', fontSize:10, fontFamily:'Space Mono,monospace', fontWeight:700, display:'flex', alignItems:'center', gap:4 }}>
+                        <FAIcon name="circle-check" size={10} /> Foto siap
                       </div>
-                      <button
-                        onClick={() => setReceiptUrl(null)}
-                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg active:bg-red-600"
-                        aria-label="Hapus foto yang dipilih"
-                      >
-                        <FAIcon name="xmark" size={14} />
+                      <button onClick={() => setReceiptUrl(null)}
+                        style={{ position:'absolute', top:8, right:8, width:30, height:30, background:'var(--red)', border:'var(--border)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' }}>
+                        <FAIcon name="xmark" size={13} />
                       </button>
-                      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent px-3 py-2">
-                        <p className="text-white text-[10px] font-medium">Tap ✕ untuk ganti foto</p>
-                      </div>
                     </div>
                   ) : (
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase mb-1.5">Foto Struk (Opsional)</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600 active:bg-purple-50 active:border-purple-400 transition-colors">
-                          <Camera size={16} className="text-purple-600" /> Kamera
-                          <input id="receipt-camera" name="receipt-camera" type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+                    <div style={{ marginBottom:12 }}>
+                      <p className="rlabel">FOTO STRUK (OPSIONAL)</p>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                        <label className="upload-area">
+                          <Camera size={20} />
+                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Kamera</span>
+                          <input id="receipt-camera" name="receipt-camera" type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleFileChange} />
                         </label>
-                        <label className="cursor-pointer flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl bg-white text-xs font-bold text-gray-600 active:bg-purple-50 active:border-purple-400 transition-colors">
-                          <Upload size={16} className="text-purple-600" /> Galeri
-                          <input id="receipt-gallery" name="receipt-gallery" type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                        <label className="upload-area">
+                          <Upload size={20} />
+                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Galeri</span>
+                          <input id="receipt-gallery" name="receipt-gallery" type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileChange} />
                         </label>
                       </div>
                     </div>
                   )}
 
-                  <button
-                    onClick={handleAddTransaction}
-                    disabled={!newAmount || isUploading}
-                    className="w-full py-3 bg-purple-600 text-white rounded-xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm active:bg-purple-700 transition-colors"
-                  >
+                  <button className="rbtn rbtn-lav rbtn-full" onClick={handleAddTransaction} disabled={!newAmount || isUploading}
+                    style={{ opacity: (!newAmount || isUploading) ? 0.5 : 1 }}>
                     {isUploading ? (
-                      <><i className="fa-solid fa-spinner fa-spin"></i> Mengunggah foto...</>
+                      <><i className="fa-solid fa-spinner fa-spin"></i> Mengunggah...</>
                     ) : (
-                      <>
-                        <FAIcon name="plus" size={14} /> Tambah ke Daftar
-                        {receiptUrl && <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">+ foto</span>}
-                      </>
+                      <><FAIcon name="plus" size={14} /> Tambah ke Daftar {receiptUrl && <span style={{ background:'rgba(0,0,0,.15)', borderRadius:99, padding:'1px 7px', fontSize:10 }}>+foto</span>}</>
                     )}
                   </button>
                 </div>
-              </div>
 
-              {/* Footer Modal yang diperbaiki */}
-      <div className="p-4 border-t border-gray-100 bg-white flex gap-3 flex-shrink-0 pb-10">
-        <button onClick={() => setShowActualModal(false)} className="py-3.5 px-6 text-gray-600 bg-gray-100 rounded-xl font-bold text-sm">Batal</button>
-        <button 
-  onClick={async () => {
-    // Pastikan kita mengirim variabel 'actuals' yang berisi daftar transaksi di modal
-    if (actuals.length === 0) {
-      if (!confirm("Belum ada transaksi diinput, simpan sebagai kosong?")) return;
-    }
-    
-    await saveActualsToDB(selectedItem.id, actuals);
-    setShowActualModal(false); 
-  }} 
-  className="flex-1 py-3.5 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-xl active:bg-purple-700"
->
-  <CheckCircle size={18} /> Simpan LPJ
-</button>
-      </div>
+                <div style={{ display:'flex', gap:10, paddingBottom:10 }}>
+                  <button className="rbtn rbtn-white" style={{ padding:'0 20px', height:48 }} onClick={() => setShowActualModal(false)}>BATAL</button>
+                  <button className="rbtn rbtn-mint" style={{ flex:1, height:48 }}
+                    onClick={async () => {
+                      if (actuals.length === 0) { if (!confirm("Belum ada transaksi diinput, simpan sebagai kosong?")) return; }
+                      await saveActualsToDB(selectedItem.id, actuals);
+                      setShowActualModal(false);
+                    }}>
+                    <CheckCircle size={16} /> Simpan LPJ
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -1437,110 +1143,100 @@
 
       const ItemDetailSidebar = () => {
         if (!selectedItem) return null;
-        
         const planTotal = selectedItem.qty * selectedItem.budget;
         const actualTotal = getItemActualTotal(selectedItem);
         const variance = planTotal - actualTotal;
-
         const isReadonly = currentUser.role === 'admin' && activeProject?.owner !== currentUser.username;
 
         return (
-          <div className="fixed inset-0 z-[40] flex justify-center bg-black/60 animate-fade-in no-print">
-            <div className="absolute inset-0 cursor-pointer" onClick={() => setShowDetailSidebar(false)}></div>
-            <div className="w-full max-w-md bg-gray-50 h-full shadow-2xl flex flex-col animate-slide-left relative z-10 overflow-hidden">
-              <div className="bg-white px-4 py-4 border-b border-gray-100 flex items-center gap-3 shadow-sm flex-shrink-0">
-                <button onClick={() => setShowDetailSidebar(false)} className="p-2 -ml-2 bg-gray-50 text-gray-600 rounded-full active:bg-gray-200">
-                  <ArrowLeft size={20} />
-                </button>
-                <h2 className="font-bold text-gray-800 text-lg truncate flex-1">Rincian & Riwayat</h2>
+          <div style={{ position:'fixed', inset:0, zIndex:150, background:'rgba(0,0,0,.5)' }} className="animate-fade-in no-print" onClick={() => setShowDetailSidebar(false)}>
+            <div className="sidebar-panel" onClick={e => e.stopPropagation()}>
+              <div style={{ background:'var(--lav-bg)', borderBottom:'var(--border)', padding:'52px 20px 16px', flexShrink:0 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <button onClick={() => setShowDetailSidebar(false)}
+                    style={{ width:36, height:36, borderRadius:'50%', background:'var(--white)', border:'var(--border)', boxShadow:'var(--shadow)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <i className="fa-solid fa-arrow-left" style={{ fontSize:14 }} />
+                  </button>
+                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, margin:0, flex:1 }}>Rincian &amp; Riwayat</p>
+                </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-5 space-y-6">
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h3 className="text-xl font-black text-gray-800 leading-tight">{selectedItem.name}</h3>
-                    <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase shrink-0 ${
-                        selectedItem.status === 'under-budget' ? 'bg-green-100 text-green-700' : 
-                        selectedItem.status === 'over-budget' ? 'bg-red-100 text-red-700' : 
-                        selectedItem.status === 'on-budget' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
-                      }`}>
-                      {selectedItem.status === 'pending' ? 'Pending' : 
-                       selectedItem.status === 'under-budget' ? 'Aman' : 
-                       selectedItem.status === 'over-budget' ? 'Over' : 'Pas'}
-                    </div>
+
+              <div style={{ flex:1, overflowY:'auto', padding:20 }}>
+                <div style={{ marginBottom:16 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, marginBottom:8 }}>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18, margin:0, flex:1, lineHeight:1.3 }}>{selectedItem.name}</p>
+                    <span className={`badge-base ${selectedItem.status === 'under-budget' ? 'badge-under' : selectedItem.status === 'over-budget' ? 'badge-over' : selectedItem.status === 'on-budget' ? 'badge-on' : 'badge-pending'}`} style={{ flexShrink:0 }}>
+                      {selectedItem.status === 'pending' ? 'Pending' : selectedItem.status === 'under-budget' ? 'Aman' : selectedItem.status === 'over-budget' ? 'Over' : 'Pas'}
+                    </span>
                   </div>
-                  <p className="text-sm font-medium text-gray-500 bg-gray-100 inline-block px-3 py-1 rounded-lg">
-                    {selectedItem.qty} {selectedItem.unit} <span className="mx-1">x</span> {formatRp(selectedItem.budget)}
-                  </p>
+                  <span style={{ fontFamily:'Space Mono,monospace', fontSize:12, background:'var(--cream2)', border:'1.5px solid #CCC', borderRadius:8, padding:'4px 10px', display:'inline-block' }}>
+                    {selectedItem.qty} {selectedItem.unit} &times; {formatRp(selectedItem.budget)}
+                  </span>
                   {selectedItem.notes && (
-                    <div className="mt-4 bg-yellow-50/50 border border-yellow-100 p-3 rounded-xl flex gap-2 items-start">
-                      <FileText size={16} className="text-yellow-600 mt-0.5 shrink-0" />
-                      <p className="text-sm text-gray-700 italic leading-snug">{selectedItem.notes}</p>
+                    <div style={{ marginTop:10, background:'var(--yel-bg)', border:'1.5px solid var(--black)', borderRadius:10, padding:'10px 12px', display:'flex', gap:8, alignItems:'flex-start' }}>
+                      <FileText size={14} />
+                      <p style={{ fontSize:13, fontStyle:'italic', margin:0, lineHeight:1.4 }}>{selectedItem.notes}</p>
                     </div>
                   )}
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Budget Rencana</span>
-                    <span className="font-bold text-gray-800 text-base">{formatRp(planTotal)}</span>
+                <div className="rcard" style={{ padding:16, marginBottom:16 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, color:'#888' }}>BUDGET RENCANA</span>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15 }}>{formatRp(planTotal)}</span>
                   </div>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Terpakai (Aktual)</span>
-                    <span className="font-black text-purple-700 text-lg">{formatRp(actualTotal)}</span>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12 }}>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, color:'#888' }}>TERPAKAI</span>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18, color:'var(--lavender)' }}>{formatRp(actualTotal)}</span>
                   </div>
-                  <div className={`pt-4 border-t border-gray-100 flex justify-between items-center text-sm font-bold ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    <span className="uppercase text-[11px] tracking-wider">{variance >= 0 ? 'Sisa Budget (Aman)' : 'Kekurangan (Over)'}</span>
-                    <span className="text-lg">{formatRp(Math.abs(variance))}</span>
+                  <div style={{ borderTop:'var(--border)', paddingTop:10, display:'flex', justifyContent:'space-between', fontFamily:'Space Mono,monospace', fontWeight:700, color: variance >= 0 ? 'var(--black)' : 'var(--red)' }}>
+                    <span style={{ fontSize:11 }}>{variance >= 0 ? 'SISA (AMAN)' : 'KURANG (OVER)'}</span>
+                    <span style={{ fontSize:16 }}>{formatRp(Math.abs(variance))}</span>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-gray-700 mb-4 flex items-center justify-between">
-                    <span>Riwayat Pengeluaran</span>
-                    <span className="text-[10px] bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
-                      {selectedItem.actuals?.length || 0} Trx
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:14, margin:0 }}>Riwayat</p>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, fontWeight:700, background:'var(--lav-bg)', border:'1.5px solid var(--black)', borderRadius:99, padding:'3px 10px' }}>
+                      {selectedItem.actuals?.length || 0} TRX
                     </span>
-                  </h4>
+                  </div>
                   {selectedItem.actuals && selectedItem.actuals.length > 0 ? (
-                    <div className="space-y-3">
+                    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                       {selectedItem.actuals.map((act, idx) => (
-                        <div key={idx} className="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center transition-all hover:shadow-md group">
+                        <div key={idx} className="rcard-sm" style={{ display:'flex', gap:12, alignItems:'center', padding:12 }}>
                           {act.receiptUrl ? (
-                            <a href={act.receiptUrl} target="_blank" rel="noreferrer" className="w-14 h-14 flex-shrink-0 rounded-xl overflow-hidden border border-gray-200 relative">
-                              <img src={act.receiptUrl} alt="struk" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                              <div className="absolute inset-0 bg-black/10"></div>
+                            <a href={act.receiptUrl} target="_blank" rel="noreferrer" style={{ width:52, height:52, flexShrink:0, borderRadius:10, overflow:'hidden', border:'var(--border)', display:'block' }}>
+                              <img src={act.receiptUrl} alt="struk" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                             </a>
                           ) : (
-                            <div className="w-14 h-14 flex-shrink-0 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                            <div style={{ width:52, height:52, flexShrink:0, borderRadius:10, background:'var(--cream2)', border:'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', color:'#AAA' }}>
                               <FileText size={20} />
                             </div>
                           )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-black text-gray-800 text-base mb-0.5">{formatRp(act.amount)}</p>
-                            <p className="text-xs text-gray-500 truncate leading-snug">{act.description || <span className="italic opacity-60">Tanpa keterangan tambahan</span>}</p>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, margin:'0 0 2px' }}>{formatRp(act.amount)}</p>
+                            <p style={{ fontSize:12, color:'#999', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                              {act.description || <span style={{ fontStyle:'italic' }}>Tanpa keterangan</span>}
+                            </p>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">
-                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300">
-                        <FileText size={24} />
-                      </div>
-                      <p className="text-sm font-medium text-gray-500">Belum ada transaksi</p>
-                      {!isReadonly && <p className="text-xs text-gray-400 mt-1">Tap tombol di bawah untuk mengisi LPJ</p>}
+                    <div style={{ textAlign:'center', padding:'32px 20px', border:'2px dashed #CCC', borderRadius:16 }}>
+                      <p style={{ fontFamily:'Space Mono,monospace', fontSize:13, color:'#AAA', margin:0 }}>Belum ada transaksi</p>
+                      {!isReadonly && <p style={{ fontSize:11, color:'#BBB', margin:'4px 0 0' }}>Tap tombol di bawah untuk mengisi LPJ</p>}
                     </div>
                   )}
                 </div>
               </div>
-              
+
               {!isReadonly && (
-                <div className="p-4 bg-white border-t border-gray-100 shrink-0">
-                  <button 
-                    onClick={() => { setShowDetailSidebar(false); setShowActualModal(true); }}
-                    className="w-full py-4 bg-purple-600 text-white rounded-xl font-bold text-sm shadow-[0_8px_16px_rgba(147,51,234,0.25)] active:bg-purple-700 flex justify-center items-center gap-2 transition-colors"
-                  >
-                    <Plus size={18} /> Tambah Transaksi LPJ Baru
+                <div style={{ padding:16, borderTop:'var(--border)', flexShrink:0 }}>
+                  <button className="rbtn rbtn-yellow rbtn-full" onClick={() => { setShowDetailSidebar(false); setShowActualModal(true); }}>
+                    <Plus size={16} /> Tambah Transaksi LPJ Baru
                   </button>
                 </div>
               )}
@@ -1551,27 +1247,17 @@
 
       const FullReportSidebar = () => {
         const [isExporting, setIsExporting] = useState(false);
-
         if (!activeProject) return null;
-        
+
         const totalPlan = calculateTotalPlan(activeProject.items);
         const totalActual = calculateTotalActual(activeProject.items);
         const variance = totalPlan - totalActual;
 
-        // --- Ekstrak Lampiran Bukti Transaksi ---
         const attachments = [];
         activeProject.items.forEach((item, itemIdx) => {
           if (item.actuals && item.actuals.length > 0) {
             item.actuals.forEach((act) => {
-              if (act.receiptUrl) {
-                attachments.push({
-                  itemNo: itemIdx + 1,
-                  itemName: item.name,
-                  desc: act.description || 'Tanpa keterangan',
-                  amount: act.amount,
-                  url: act.receiptUrl
-                });
-              }
+              if (act.receiptUrl) attachments.push({ itemNo:itemIdx+1, itemName:item.name, desc:act.description||'Tanpa keterangan', amount:act.amount, url:act.receiptUrl });
             });
           }
         });
@@ -1581,212 +1267,163 @@
           setTimeout(() => {
             const element = document.getElementById('pdf-report-content');
             const opt = {
-              margin:       [15, 10, 15, 10], 
-              filename:     `LPJ_${activeProject.name.replace(/\s+/g, '_')}.pdf`,
-              image:        { type: 'jpeg', quality: 0.98 },
-              html2canvas:  { scale: 2, useCORS: true },
-              jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-              pagebreak:    { mode: ['css', 'legacy'] } 
+              margin: [15,10,15,10],
+              filename: `LPJ_${activeProject.name.replace(/\s+/g,'_')}.pdf`,
+              image: { type:'jpeg', quality:0.98 },
+              html2canvas: { scale:2, useCORS:true },
+              jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+              pagebreak: { mode:['css','legacy'] }
             };
-
-            window.html2pdf().set(opt).from(element).save().then(() => {
-              setIsExporting(false);
-            }).catch(err => {
-              console.error("Gagal export PDF:", err);
-              setIsExporting(false);
-              alert("Terjadi kesalahan saat memproses PDF.");
-            });
+            window.html2pdf().set(opt).from(element).save().then(() => setIsExporting(false)).catch(err => { console.error("Gagal export PDF:", err); setIsExporting(false); alert("Terjadi kesalahan saat memproses PDF."); });
           }, 300);
         };
 
         return (
-          <div className="fixed inset-0 z-[40] flex justify-center bg-gray-50 animate-slide-left overflow-y-auto">
-            <div className="w-full max-w-md bg-gray-50 min-h-screen shadow-2xl sm:border-x border-gray-300">
-              <div className="sticky top-0 bg-white px-4 py-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-20">
-                <button onClick={() => setShowFullReportSidebar(false)} className="p-2 -ml-2 bg-gray-50 text-gray-600 rounded-full active:bg-gray-200">
-                  <ArrowLeft size={20} />
+          <div className="sidebar-panel" style={{ zIndex:150 }}>
+            <div style={{ background:'var(--lavender)', borderBottom:'var(--border)', padding:'52px 20px 20px', flexShrink:0 }}>
+              <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'rgba(0,0,0,.5)', letterSpacing:'.08em', margin:'0 0 4px' }}>LAPORAN PERTANGGUNGJAWABAN</p>
+              <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18, margin:'0 0 14px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{activeProject.name}</p>
+              <div style={{ display:'flex', gap:8 }}>
+                <button onClick={() => setShowFullReportSidebar(false)} className="rbtn rbtn-white" style={{ height:36, padding:'0 14px', fontSize:12 }}>
+                  <i className="fa-solid fa-arrow-left" style={{ fontSize:12 }}></i> Kembali
                 </button>
-                <h2 className="font-bold text-gray-800 text-lg flex-1">Laporan Keseluruhan</h2>
-                <button 
-                  onClick={handleExportPDF} 
-                  disabled={isExporting}
-                  className={`px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors ${isExporting ? 'bg-gray-200 text-gray-500' : 'bg-blue-100 hover:bg-blue-200 text-blue-700'}`}
-                >
-                  {isExporting ? <i className="fa-solid fa-spinner fa-spin"></i> : <Printer size={16} />}
-                  {isExporting ? 'Menyiapkan...' : 'Cetak PDF'}
+                <button onClick={handleExportPDF} disabled={isExporting} className="rbtn rbtn-yellow" style={{ height:36, padding:'0 14px', fontSize:12, opacity: isExporting ? 0.7 : 1 }}>
+                  {isExporting ? <><i className="fa-solid fa-spinner fa-spin"></i> Menyiapkan...</> : <><Printer size={13} /> Cetak PDF</>}
                 </button>
               </div>
+            </div>
 
-              <div id="pdf-report-content" className="p-6 bg-white w-full">
-                <div className="text-center mb-8 border-b border-black pb-6">
-                  <h1 className="text-2xl font-black text-black uppercase leading-snug">{activeProject.name}</h1>
-                  <p className="text-gray-600 font-medium text-sm mt-1">Tanggal: {displayDate(activeProject.startDate, activeProject.endDate)}</p>
-                  <p className="text-gray-600 font-medium text-sm">PJ Program: {activeProject.owner}</p>
+            <div style={{ flex:1, overflowY:'auto' }}>
+              <div id="pdf-report-content" style={{ padding:20, background:'white' }}>
+                <div style={{ textAlign:'center', marginBottom:24, borderBottom:'2px solid black', paddingBottom:20 }}>
+                  <h1 style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:20, textTransform:'uppercase', margin:'0 0 6px' }}>{activeProject.name}</h1>
+                  <p style={{ fontSize:13, color:'#555', margin:'0 0 2px' }}>Tanggal: {displayDate(activeProject.startDate, activeProject.endDate)}</p>
+                  <p style={{ fontSize:13, color:'#555', margin:0 }}>PJ Program: {activeProject.owner}</p>
                   {activeProject.target && (
-                    <p className="text-black text-sm mt-3 italic bg-transparent border border-gray-300 p-3 rounded-lg">
-                      Target: {activeProject.target}
-                    </p>
+                    <p style={{ fontSize:12, marginTop:10, fontStyle:'italic', border:'1px solid #CCC', padding:'8px 12px', borderRadius:8 }}>Target: {activeProject.target}</p>
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-10">
-                  <div className="border border-gray-400 p-4 rounded-xl text-center bg-transparent">
-                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Rencana</p>
-                    <p className="text-xl font-black text-black mt-1">{formatRp(totalPlan)}</p>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:24 }}>
+                  <div style={{ border:'1.5px solid black', padding:14, borderRadius:10, textAlign:'center' }}>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#666', margin:'0 0 4px', textTransform:'uppercase' }}>Total Rencana</p>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18, margin:0 }}>{formatRp(totalPlan)}</p>
                   </div>
-                  <div className="border border-gray-400 p-4 rounded-xl text-center bg-transparent">
-                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Aktual (Terpakai)</p>
-                    <p className="text-xl font-black text-black mt-1">{formatRp(totalActual)}</p>
+                  <div style={{ border:'1.5px solid black', padding:14, borderRadius:10, textAlign:'center' }}>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#666', margin:'0 0 4px', textTransform:'uppercase' }}>Total Aktual</p>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:18, margin:0 }}>{formatRp(totalActual)}</p>
                   </div>
-                  <div className="col-span-2 border border-gray-400 p-4 rounded-xl text-center bg-transparent">
-                    <p className={`text-xs font-bold uppercase tracking-wider ${variance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {variance >= 0 ? 'Sisa Dana (Under Budget)' : 'Kekurangan Dana (Over Budget)'}
+                  <div style={{ border:'1.5px solid black', padding:14, borderRadius:10, textAlign:'center', gridColumn:'span 2' }}>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color: variance >= 0 ? '#0A5A3A' : '#8B1A1A', margin:'0 0 4px', textTransform:'uppercase' }}>
+                      {variance >= 0 ? 'Sisa Dana (Under Budget)' : 'Kekurangan (Over Budget)'}
                     </p>
-                    <p className={`text-2xl font-black mt-1 text-black`}>
-                      {formatRp(Math.abs(variance))}
-                    </p>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:22, margin:0 }}>{formatRp(Math.abs(variance))}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-black text-lg mb-5 border-b-2 border-black pb-2">Rincian & Riwayat per Item</h3>
-                  <div className="space-y-6">
+                  <h3 style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, borderBottom:'2px solid black', paddingBottom:8, marginBottom:16 }}>Rincian &amp; Riwayat per Item</h3>
+                  <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                     {activeProject.items.map((item, index) => {
                       const itemPlan = item.qty * item.budget;
                       const itemActual = getItemActualTotal(item);
                       const itemVar = itemPlan - itemActual;
-                      
                       return (
-                        <div key={item.id} className="border border-gray-400 rounded-xl overflow-hidden" style={{ pageBreakInside: 'avoid' }}>
-                          <div className="bg-gray-100 p-4 border-b border-gray-400">
-                            <h4 className="font-bold text-black text-base">{index + 1}. {item.name}</h4>
-                            <p className="text-xs font-medium text-gray-600 mt-0.5">{item.qty} {item.unit} x {formatRp(item.budget)}</p>
+                        <div key={item.id} style={{ border:'1.5px solid black', borderRadius:10, overflow:'hidden', pageBreakInside:'avoid' }}>
+                          <div style={{ background:'#F0F0F0', padding:'10px 14px', borderBottom:'1.5px solid black' }}>
+                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:14, margin:'0 0 2px' }}>{index+1}. {item.name}</p>
+                            <p style={{ fontSize:11, color:'#666', margin:0 }}>{item.qty} {item.unit} &times; {formatRp(item.budget)}</p>
                           </div>
-                          
-                          <div className="p-4">
-                            <div className="flex justify-between text-sm mb-2">
-                              <span className="text-gray-600 font-medium">Alokasi Rencana:</span>
-                              <span className="font-bold text-black">{formatRp(itemPlan)}</span>
+                          <div style={{ padding:12 }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:10 }}>
+                              <span style={{ color:'#666' }}>Alokasi Rencana:</span>
+                              <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700 }}>{formatRp(itemPlan)}</span>
                             </div>
-                            
-                            <div className="mt-4">
-                              <p className="text-[11px] font-bold text-gray-500 uppercase mb-2 tracking-wider">Riwayat Transaksi:</p>
+                            <div style={{ marginBottom:10 }}>
+                              <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Riwayat Transaksi:</p>
                               {item.actuals && item.actuals.length > 0 ? (
-                                <ul className="space-y-2">
+                                <ul style={{ listStyle:'none', padding:0, margin:0, display:'flex', flexDirection:'column', gap:4 }}>
                                   {item.actuals.map((act, i) => (
-                                    <li key={i} className="flex justify-between text-sm items-start gap-3 bg-transparent p-1">
-                                      <div className="flex items-start gap-2">
-                                        <span className="text-gray-500 mt-0.5">•</span>
-                                        <span className="text-gray-800">{act.description || <span className="italic text-gray-500">Tanpa keterangan spesifik</span>}</span>
-                                      </div>
-                                      <span className="font-bold text-black whitespace-nowrap">{formatRp(act.amount)}</span>
+                                    <li key={i} style={{ display:'flex', justifyContent:'space-between', fontSize:13, gap:12 }}>
+                                      <span style={{ color:'#555' }}>&bull; {act.description || <span style={{ fontStyle:'italic', color:'#AAA' }}>Tanpa keterangan</span>}</span>
+                                      <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700, whiteSpace:'nowrap' }}>{formatRp(act.amount)}</span>
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="text-sm italic text-gray-500">- Belum ada riwayat transaksi aktual -</p>
+                                <p style={{ fontSize:13, fontStyle:'italic', color:'#AAA' }}>- Belum ada transaksi -</p>
                               )}
                             </div>
-                            
-                            <div className="mt-5 pt-3 border-t border-dashed border-gray-400 flex justify-between items-center">
-                              <span className="text-sm font-bold text-gray-800">Total Terpakai:</span>
-                              <span className="text-sm font-black text-black">{formatRp(itemActual)}</span>
+                            <div style={{ borderTop:'1.5px dashed black', paddingTop:8, display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                              <span style={{ fontFamily:'Space Mono,monospace', fontSize:12, fontWeight:700 }}>Total Terpakai:</span>
+                              <span style={{ fontFamily:'Space Mono,monospace', fontWeight:700 }}>{formatRp(itemActual)}</span>
                             </div>
-                            <div className="flex justify-between items-center mt-1.5">
-                              <span className="text-xs font-medium text-gray-600">{itemVar >= 0 ? 'Sisa Item:' : 'Over Item:'}</span>
-                              <span className={`text-xs font-bold text-gray-800`}>{formatRp(Math.abs(itemVar))}</span>
+                            <div style={{ display:'flex', justifyContent:'space-between' }}>
+                              <span style={{ fontSize:12, color:'#666' }}>{itemVar >= 0 ? 'Sisa Item:' : 'Over Item:'}</span>
+                              <span style={{ fontFamily:'Space Mono,monospace', fontSize:12, fontWeight:700 }}>{formatRp(Math.abs(itemVar))}</span>
                             </div>
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                 </div>
 
-                <div className={`mt-16 justify-between px-10 ${isExporting ? 'flex' : 'hidden'}`}>
-                  <div className="text-center">
-                    <p className="mb-20 text-sm text-black">Dibuat Oleh,</p>
-                    <p className="font-bold border-b border-black pb-1 min-w-[150px] inline-block"></p>
-                    <p className="text-xs text-gray-600 mt-1 capitalize">{activeProject.owner}</p>
+                <div style={{ marginTop:60, display: isExporting ? 'flex' : 'none', justifyContent:'space-between', padding:'0 40px' }}>
+                  <div style={{ textAlign:'center' }}>
+                    <p style={{ marginBottom:80, fontSize:13 }}>Dibuat Oleh,</p>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, borderBottom:'1.5px solid black', paddingBottom:4, minWidth:150, display:'inline-block' }}></p>
+                    <p style={{ fontSize:11, color:'#666', marginTop:4, textTransform:'capitalize' }}>{activeProject.owner}</p>
                   </div>
-                  <div className="text-center">
-                    <p className="mb-20 text-sm text-black">Mengetahui,</p>
-                    <p className="font-bold border-b border-black pb-1 min-w-[150px] inline-block"></p>
-                    <p className="text-xs text-gray-600 mt-1">Finance / HRD</p>
+                  <div style={{ textAlign:'center' }}>
+                    <p style={{ marginBottom:80, fontSize:13 }}>Mengetahui,</p>
+                    <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, borderBottom:'1.5px solid black', paddingBottom:4, minWidth:150, display:'inline-block' }}></p>
+                    <p style={{ fontSize:11, color:'#666', marginTop:4 }}>Finance / HRD</p>
                   </div>
                 </div>
-                
-                {/* --- BAGIAN LAMPIRAN FOTO --- */}
+
                 {attachments.length > 0 && (
-                  <div className="mt-16 pt-8" style={{ pageBreakBefore: 'always' }}>
-                    <h3 className="font-bold text-black text-lg mb-6 border-b-2 border-black pb-2 text-center uppercase tracking-widest">
+                  <div style={{ marginTop:60, paddingTop:30, pageBreakBefore:'always' }}>
+                    <h3 style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:14, borderBottom:'2px solid black', paddingBottom:8, marginBottom:20, textAlign:'center', textTransform:'uppercase', letterSpacing:'.1em' }}>
                       Lampiran Bukti Transaksi
                     </h3>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
                       {attachments.map((att, idx) => (
-                        <div key={idx} className="border border-gray-400 p-3 rounded-xl flex flex-col bg-transparent" style={{ pageBreakInside: 'avoid' }}>
-                          <div className="mb-3 border-b border-dashed border-gray-400 pb-2">
-                            <p className="text-sm font-bold text-black">
-                              Item {att.itemNo}: {att.itemName}
-                            </p>
-                            <div className="flex justify-between items-start mt-1">
-                              <p className="text-xs text-gray-700 italic pr-2">
-                                {att.desc}
-                              </p>
-                              <p className="text-xs font-bold text-black bg-gray-200 px-2 py-1 rounded whitespace-nowrap">
-                                {formatRp(att.amount)}
-                              </p>
+                        <div key={idx} style={{ border:'1.5px solid black', padding:10, borderRadius:10, display:'flex', flexDirection:'column', pageBreakInside:'avoid' }}>
+                          <div style={{ marginBottom:10, borderBottom:'1.5px dashed black', paddingBottom:8 }}>
+                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:12, margin:'0 0 4px' }}>Item {att.itemNo}: {att.itemName}</p>
+                            <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                              <p style={{ fontSize:11, color:'#555', fontStyle:'italic', margin:0 }}>{att.desc}</p>
+                              <p style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700, background:'#EEE', padding:'2px 6px', borderRadius:4, whiteSpace:'nowrap', margin:0 }}>{formatRp(att.amount)}</p>
                             </div>
                           </div>
-                          <div className="w-full h-48 bg-transparent rounded-lg flex items-center justify-center">
-                            <img src={att.url} className="max-w-full max-h-full object-contain" alt={`Bukti ${idx+1}`} />
+                          <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', minHeight:160 }}>
+                            <img src={att.url} style={{ maxWidth:'100%', maxHeight:180, objectFit:'contain' }} alt={`Bukti ${idx+1}`} />
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-                
               </div>
             </div>
           </div>
         );
       };
 
-      // Tampilkan halaman Login jika belum ada session
-      if (!currentUser) {
-        return <AuthScreen />;
-      }
+      if (!currentUser) return <AuthScreen />;
 
-      // Main App Return
       return (
-        <div className="bg-gray-200 min-h-screen flex justify-center">
-          <div className="w-full max-w-md bg-gray-50 min-h-screen relative shadow-2xl sm:border-x border-gray-300 font-sans overflow-x-hidden">
-            
-            <main>
-              {currentView === 'dashboard' ? <Dashboard /> : <ProjectDetail />}
-            </main>
-
-            {showNewProjectModal && <NewProjectModal />}
-            {showItemModal && <ItemPlanModal />}
-            {showActualModal && <ActualInputModal />}
-            {showDetailSidebar && <ItemDetailSidebar />}
-            {showFullReportSidebar && <FullReportSidebar />}
-            
-            <ConfirmModal />
-            
-            <style dangerouslySetInnerHTML={{__html: `
-              .animate-fade-in { animation: fadeIn 0.2s ease-out; }
-              .animate-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-              .animate-slide-left { animation: slideLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
-              
-              @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-              @keyframes slideUp { from { transform: translateY(100%); opacity: 0.5; } to { transform: translateY(0); opacity: 1; } }
-              @keyframes slideLeft { from { transform: translateX(100%); } to { transform: translateX(0); } }
-              
-              ::-webkit-scrollbar { width: 0px; background: transparent; }
-            `}} />
-          </div>
+        <div style={{ background:'var(--cream)', minHeight:'100vh' }}>
+          <main>
+            {currentView === 'dashboard' ? <Dashboard /> : <ProjectDetail />}
+          </main>
+          {showNewProjectModal && <NewProjectModal />}
+          {showItemModal && <ItemPlanModal />}
+          {showActualModal && <ActualInputModal />}
+          {showDetailSidebar && <ItemDetailSidebar />}
+          {showFullReportSidebar && <FullReportSidebar />}
+          <ConfirmModal />
         </div>
       );
     }
