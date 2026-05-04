@@ -519,15 +519,15 @@
                 <input id="proj-name" name="proj-name" className="rinput" style={{ marginBottom:14 }}
                   value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Contoh: Perjalanan Dinas JKT" />
 
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
-                  <div style={{ minWidth:0, overflow:'hidden' }}>
+                <div style={{ display:'flex', gap:12, marginBottom:14 }}>
+                  <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="proj-start">MULAI</label>
-                    <input id="proj-start" name="proj-start" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box' }}
+                    <input id="proj-start" name="proj-start" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
                       value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                   </div>
-                  <div style={{ minWidth:0, overflow:'hidden' }}>
+                  <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="proj-end">SELESAI</label>
-                    <input id="proj-end" name="proj-end" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box' }}
+                    <input id="proj-end" name="proj-end" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
                       value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                   </div>
                 </div>
@@ -779,15 +779,15 @@
                     onBlur={() => { if (localName !== activeProject.name) handleUpdateProjectInfo('name', localName); }}
                     placeholder="Contoh: Kunjungan Jkt" disabled={isReadonly} />
                 </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14 }}>
-                  <div style={{ minWidth:0, overflow:'hidden' }}>
+                <div style={{ display:'flex', gap:12, marginBottom:14 }}>
+                  <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="detail-start">MULAI</label>
-                    <input id="detail-start" name="detail-start" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box' }}
+                    <input id="detail-start" name="detail-start" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
                       value={activeProject.startDate || ''} onChange={(e) => handleUpdateProjectInfo('startDate', e.target.value)} disabled={isReadonly} />
                   </div>
-                  <div style={{ minWidth:0, overflow:'hidden' }}>
+                  <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="detail-end">SELESAI</label>
-                    <input id="detail-end" name="detail-end" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box' }}
+                    <input id="detail-end" name="detail-end" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
                       value={activeProject.endDate || ''} onChange={(e) => handleUpdateProjectInfo('endDate', e.target.value)} disabled={isReadonly} />
                   </div>
                 </div>
