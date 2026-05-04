@@ -624,7 +624,7 @@
               </div>
             </div>
 
-            <div style={{ margin:'16px 16px 8px', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }}>
+            <div style={{ margin:'16px 16px 16px', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none', paddingBottom:4 }}>
               {[{id:'semua',label:'Semua'},{id:'selesai',label:'Selesai'},{id:'pending',label:'Pending'}].map(chip => (
                 <button key={chip.id} className={`chip ${activeFilter === chip.id ? 'active' : ''}`} onClick={() => setActiveFilter(chip.id)}>
                   {chip.label}
@@ -792,7 +792,7 @@
               </div>
             </div>
 
-            <div style={{ padding:'12px 16px 0', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }} className="no-print">
+            <div style={{ padding:'12px 16px 20px', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none' }} className="no-print">
               <button className="rbtn rbtn-lav" style={{ height:36, padding:'0 14px', fontSize:12, flexShrink:0 }} onClick={() => setShowFullReportSidebar(true)}>
                 <i className="fa-solid fa-file-lines" style={{ fontSize:12 }}></i> Laporan
               </button>
