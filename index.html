@@ -605,25 +605,6 @@
               </div>
             </div>
 
-            <div style={{ margin:'-28px 16px 0' }}>
-              <div className="rcard" style={{ display:'grid', gridTemplateColumns:'1fr 2px 1fr 2px 1fr', padding:0, overflow:'hidden' }}>
-                <div style={{ padding:'12px 8px', textAlign:'center' }}>
-                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>RENCANA</p>
-                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, color:'var(--black)', margin:0, wordBreak:'break-all' }}>{formatRp(grandPlan)}</p>
-                </div>
-                <div style={{ background:'var(--cream2)' }}></div>
-                <div style={{ padding:'12px 8px', textAlign:'center' }}>
-                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>TERPAKAI</p>
-                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, color:'var(--lavender)', margin:0, wordBreak:'break-all' }}>{formatRp(grandActual)}</p>
-                </div>
-                <div style={{ background:'var(--cream2)' }}></div>
-                <div style={{ padding:'12px 8px', textAlign:'center' }}>
-                  <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 4px' }}>{grandVar >= 0 ? 'SISA' : 'OVER'}</p>
-                  <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, color: grandVar >= 0 ? 'var(--mint)' : 'var(--red)', margin:0, wordBreak:'break-all' }}>{formatRp(Math.abs(grandVar))}</p>
-                </div>
-              </div>
-            </div>
-
             <div style={{ margin:'16px 16px 16px', display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none', paddingBottom:4 }}>
               {[{id:'semua',label:'Semua'},{id:'selesai',label:'Selesai'},{id:'pending',label:'Pending'}].map(chip => (
                 <button key={chip.id} className={`chip ${activeFilter === chip.id ? 'active' : ''}`} onClick={() => setActiveFilter(chip.id)}>
