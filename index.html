@@ -317,16 +317,8 @@
 
       if (isInitializing) {
         return (
-          <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:28 }}>
-            <div style={{ position:'relative' }}>
-              <div style={{ position:'absolute', inset:0, background:'var(--yellow)', borderRadius:20, transform:'rotate(-5deg)', border:'var(--border)' }}></div>
-              <div style={{ position:'relative', background:'var(--cream)', border:'var(--border)', borderRadius:20, padding:'20px 24px', boxShadow:'var(--shadow-lg)' }}>
-                <WalletSVG />
-              </div>
-            </div>
-            <div style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:32, letterSpacing:'-1px' }}>
-              BUDGET<span style={{ color:'var(--lavender)' }}>pro</span>
-            </div>
+          <div style={{ minHeight:'100vh', background:'var(--cream)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:24 }}>
+            <img src="logo-full.png" alt="BUDGETpro" style={{ width:220, height:'auto', display:'block' }} />
             <div style={{ display:'flex', gap:10 }}>
               <span className="dot"></span><span className="dot"></span><span className="dot"></span>
             </div>
