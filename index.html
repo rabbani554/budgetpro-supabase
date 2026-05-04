@@ -726,7 +726,7 @@
                   style={{ width:36, height:36, borderRadius:'50%', background:'var(--white)', border:'var(--border)', boxShadow:'var(--shadow)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <i className="fa-solid fa-arrow-left" style={{ fontSize:14 }} />
                 </button>
-                <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', margin:0 }}>
+                <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, flex:1, margin:0, wordBreak:'break-word' }}>
                   {activeProject.name || 'Project Baru'}
                 </p>
                 {isReadonly && (
