@@ -63,9 +63,11 @@
     .rbtn-black  { background: var(--black);  color: var(--white); }
     .rbtn-red    { background: var(--red);    color: var(--white); }
     .rbtn-full   { width:100%; height:52px; font-size:15px; border-radius:var(--radius-sm); }
-    .rinput { background: var(--cream2); border: var(--border); border-radius: var(--radius-sm); height: 52px; padding: 0 14px; font-size: 14px; font-family: 'Space Mono', monospace; color: var(--black); width: 100%; outline: none; transition: box-shadow .15s; }
+    .rinput { background: var(--cream2); border: var(--border); border-radius: var(--radius-sm); height: 52px; padding: 0 14px; font-size: 14px; font-family: 'Space Mono', monospace; color: var(--black); width: 100%; outline: none; transition: box-shadow .15s; box-sizing: border-box; }
     .rinput:focus { box-shadow: var(--shadow); }
     .rinput::placeholder { color: #AAA; font-family: 'Inter', sans-serif; }
+    input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+    input[type="date"] { text-align: left; }
     .rtextarea { background: var(--cream2); border: var(--border); border-radius: var(--radius-sm); padding: 12px 14px; min-height: 80px; font-size: 14px; font-family: 'Inter', sans-serif; color: var(--black); width: 100%; outline: none; resize: none; transition: box-shadow .15s; }
     .rtextarea:focus { box-shadow: var(--shadow); }
     .rlabel { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: var(--black); margin-bottom: 5px; display: block; letter-spacing: .04em; text-transform: uppercase; }
@@ -522,12 +524,12 @@
                 <div style={{ display:'flex', gap:12, marginBottom:14 }}>
                   <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="proj-start">MULAI</label>
-                    <input id="proj-start" name="proj-start" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
+                    <input id="proj-start" name="proj-start" type="date" className="rinput" style={{ fontSize:13 }}
                       value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                   </div>
                   <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="proj-end">SELESAI</label>
-                    <input id="proj-end" name="proj-end" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
+                    <input id="proj-end" name="proj-end" type="date" className="rinput" style={{ fontSize:13 }}
                       value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                   </div>
                 </div>
@@ -782,12 +784,12 @@
                 <div style={{ display:'flex', gap:12, marginBottom:14 }}>
                   <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="detail-start">MULAI</label>
-                    <input id="detail-start" name="detail-start" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
+                    <input id="detail-start" name="detail-start" type="date" className="rinput" style={{ fontSize:13 }}
                       value={activeProject.startDate || ''} onChange={(e) => handleUpdateProjectInfo('startDate', e.target.value)} disabled={isReadonly} />
                   </div>
                   <div style={{ flex:'0 0 calc(50% - 6px)', width:'calc(50% - 6px)', overflow:'hidden' }}>
                     <label className="rlabel" htmlFor="detail-end">SELESAI</label>
-                    <input id="detail-end" name="detail-end" type="date" className="rinput" style={{ fontSize:13, padding:'0 10px', width:'100%', boxSizing:'border-box', display:'block' }}
+                    <input id="detail-end" name="detail-end" type="date" className="rinput" style={{ fontSize:13 }}
                       value={activeProject.endDate || ''} onChange={(e) => handleUpdateProjectInfo('endDate', e.target.value)} disabled={isReadonly} />
                   </div>
                 </div>
