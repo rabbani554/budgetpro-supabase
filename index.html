@@ -12,7 +12,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -489,10 +489,16 @@
         const handleImportExcel = (e) => {
           const file = e.target.files[0];
           if (!file) return;
+          if (typeof XLSX === 'undefined') {
+            alert('Library Excel belum dimuat. Coba refresh halaman dan ulangi.');
+            return;
+          }
           const reader = new FileReader();
           reader.onload = async (evt) => {
             try {
-              const wb = XLSX.read(new Uint8Array(evt.target.result), { type:'array' });
+              const buffer = evt.target.result;
+              const arr = new Uint8Array(buffer);
+              const wb = XLSX.read(arr, { type:'array' });
               const ws = wb.Sheets[wb.SheetNames[0]];
               const data = XLSX.utils.sheet_to_json(ws);
               if (!data || data.length === 0) { alert('File Excel kosong atau format tidak sesuai template.'); return; }
@@ -578,7 +584,7 @@
                   </button>
                   <label className="rbtn rbtn-mint rbtn-full" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, cursor:'pointer' }}>
                     <ExcelIcon size={16} /> IMPORT EXCEL
-                    <input type="file" accept=".xlsx, .xls" style={{ display:'none' }} onChange={handleImportExcel} />
+                    <input type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style={{ display:'none' }} onChange={handleImportExcel} />
                   </label>
                 </div>
               </div>
