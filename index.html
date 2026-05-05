@@ -325,6 +325,8 @@
         }
       };
 
+      const getActualUrls = (act) => act.receiptUrls?.length > 0 ? act.receiptUrls : (act.receiptUrl ? [act.receiptUrl] : []);
+
       const getItemActualTotal = (item) => {
         if (item.actuals && Array.isArray(item.actuals)) return item.actuals.reduce((sum, a) => sum + Number(a.amount), 0);
         return 0;
@@ -890,20 +892,20 @@
                           </span>
                         </div>
 
-                        {item.actuals && item.actuals.filter(a => a.receiptUrl).length > 0 && (
+                        {item.actuals && (() => { const allUrls = item.actuals.flatMap(a => getActualUrls(a)); return allUrls.length > 0 && (
                           <div style={{ display:'flex', marginBottom:6 }}>
-                            {item.actuals.filter(a => a.receiptUrl).slice(0,3).map((act, idx) => (
-                              <a key={idx} href={act.receiptUrl} target="_blank" rel="noreferrer" style={{ width:28, height:28, borderRadius:'50%', border:'2px solid var(--black)', overflow:'hidden', marginLeft: idx===0 ? 0 : -8, background:'var(--cream2)', display:'block', flexShrink:0 }}>
-                                <img src={act.receiptUrl} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="struk" />
+                            {allUrls.slice(0,3).map((url, idx) => (
+                              <a key={idx} href={url} target="_blank" rel="noreferrer" style={{ width:28, height:28, borderRadius:'50%', border:'2px solid var(--black)', overflow:'hidden', marginLeft: idx===0 ? 0 : -8, background:'var(--cream2)', display:'block', flexShrink:0 }}>
+                                <img src={url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="struk" />
                               </a>
                             ))}
-                            {item.actuals.filter(a => a.receiptUrl).length > 3 && (
+                            {allUrls.length > 3 && (
                               <div style={{ width:28, height:28, borderRadius:'50%', border:'2px solid var(--black)', marginLeft:-8, background:'var(--cream2)', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Space Mono,monospace', fontSize:9, fontWeight:700 }}>
-                                +{item.actuals.filter(a => a.receiptUrl).length - 3}
+                                +{allUrls.length - 3}
                               </div>
                             )}
                           </div>
-                        )}
+                        ); })()}
 
                         {item.notes && <p style={{ fontSize:11, color:'#999', fontStyle:'italic', marginBottom:6 }}>Ket: {item.notes}</p>}
 
@@ -992,7 +994,7 @@
         const [actuals, setActuals] = useState(selectedItem?.actuals || []);
         const [newAmount, setNewAmount] = useState('');
         const [newDesc, setNewDesc] = useState('');
-        const [receiptUrl, setReceiptUrl] = useState(null);
+        const [newReceiptUrls, setNewReceiptUrls] = useState([]);
         const [isUploading, setIsUploading] = useState(false);
 
         const plannedTotal = selectedItem ? (selectedItem.qty * selectedItem.budget) : 0;
@@ -1001,27 +1003,35 @@
 
         const handleFileChange = (e) => {
           const file = e.target.files[0];
-          if (file) { const reader = new FileReader(); reader.onloadend = () => setReceiptUrl(reader.result); reader.readAsDataURL(file); }
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onloadend = () => setNewReceiptUrls(prev => [...prev, reader.result]);
+          reader.readAsDataURL(file);
+          e.target.value = '';
         };
 
         const handleAddTransaction = async () => {
           const numericAmount = Number(newAmount.replace(/\./g, ''));
           if (!numericAmount || numericAmount <= 0) return;
           setIsUploading(true);
-          let finalUrl = receiptUrl;
           try {
-            if (receiptUrl && receiptUrl.startsWith('data:')) {
-              const res = await fetch(receiptUrl);
-              const blob = await res.blob();
-              const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}.jpg`;
-              const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, { contentType:'image/jpeg' });
-              if (error) throw error;
-              const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
-              finalUrl = publicUrlData.publicUrl;
+            const uploadedUrls = [];
+            for (const url of newReceiptUrls) {
+              if (url.startsWith('data:')) {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}_${Math.random().toString(36).substr(2,5)}.jpg`;
+                const { error } = await supabase.storage.from('receipts').upload(fileName, blob, { contentType:'image/jpeg' });
+                if (error) throw error;
+                const { data: pub } = supabase.storage.from('receipts').getPublicUrl(fileName);
+                uploadedUrls.push(pub.publicUrl);
+              } else {
+                uploadedUrls.push(url);
+              }
             }
-            const newAct = { id: Date.now().toString(), amount: numericAmount, description: newDesc, receiptUrl: finalUrl };
+            const newAct = { id: Date.now().toString(), amount: numericAmount, description: newDesc, receiptUrls: uploadedUrls };
             setActuals([...actuals, newAct]);
-            setNewAmount(''); setNewDesc(''); setReceiptUrl(null);
+            setNewAmount(''); setNewDesc(''); setNewReceiptUrls([]);
           } catch (error) { alert("Gagal mengunggah foto."); console.error(error); }
           setIsUploading(false);
         };
@@ -1053,27 +1063,31 @@
 
                 {actuals.length > 0 && (
                   <div style={{ marginBottom:14, display:'flex', flexDirection:'column', gap:8 }}>
-                    {actuals.map((act) => (
-                      <div key={act.id} className="rcard-sm" style={{ display:'flex', gap:10, alignItems:'center', padding:10 }}>
-                        {act.receiptUrl ? (
-                          <a href={act.receiptUrl} target="_blank" rel="noreferrer" style={{ width:44, height:44, borderRadius:8, overflow:'hidden', border:'var(--border)', flexShrink:0, display:'block' }}>
-                            <img src={act.receiptUrl} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="struk" />
-                          </a>
-                        ) : (
-                          <div style={{ width:44, height:44, borderRadius:8, background:'var(--cream2)', border:'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                            <i className="fa-solid fa-file-invoice" style={{ fontSize:18, color:'#AAA' }}></i>
+                    {actuals.map((act) => {
+                      const urls = getActualUrls(act);
+                      return (
+                        <div key={act.id} className="rcard-sm" style={{ display:'flex', gap:10, alignItems:'center', padding:10 }}>
+                          {urls.length > 0 ? (
+                            <a href={urls[0]} target="_blank" rel="noreferrer" style={{ position:'relative', width:44, height:44, borderRadius:8, overflow:'hidden', border:'var(--border)', flexShrink:0, display:'block' }}>
+                              <img src={urls[0]} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt="struk" />
+                              {urls.length > 1 && <div style={{ position:'absolute', bottom:2, right:2, background:'rgba(0,0,0,.65)', color:'white', borderRadius:4, fontSize:9, fontWeight:700, padding:'1px 4px' }}>+{urls.length-1}</div>}
+                            </a>
+                          ) : (
+                            <div style={{ width:44, height:44, borderRadius:8, background:'var(--cream2)', border:'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                              <i className="fa-solid fa-file-invoice" style={{ fontSize:18, color:'#AAA' }}></i>
+                            </div>
+                          )}
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, margin:0 }}>{formatRp(act.amount)}</p>
+                            <p style={{ fontSize:11, color:'#999', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{act.description || 'Tanpa keterangan'}</p>
                           </div>
-                        )}
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, margin:0 }}>{formatRp(act.amount)}</p>
-                          <p style={{ fontSize:11, color:'#999', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{act.description || 'Tanpa keterangan'}</p>
+                          <button onClick={() => setActuals(actuals.filter(a => a.id !== act.id))}
+                            style={{ color:'var(--red)', padding:6, background:'var(--red-bg)', border:'1.5px solid var(--red)', borderRadius:8, cursor:'pointer' }}>
+                            <i className="fa-solid fa-trash-can" style={{ fontSize:12 }}></i>
+                          </button>
                         </div>
-                        <button onClick={() => setActuals(actuals.filter(a => a.id !== act.id))}
-                          style={{ color:'var(--red)', padding:6, background:'var(--red-bg)', border:'1.5px solid var(--red)', borderRadius:8, cursor:'pointer' }}>
-                          <i className="fa-solid fa-trash-can" style={{ fontSize:12 }}></i>
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
@@ -1088,41 +1102,39 @@
                   <input id="trx-desc" name="trx-desc" type="text" className="rinput" style={{ marginBottom:12 }}
                     value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Cth: Bayar tol, makan siang..." />
 
-                  {receiptUrl ? (
-                    <div style={{ position:'relative', borderRadius:10, overflow:'hidden', border:'var(--border)', marginBottom:12 }}>
-                      <img src={receiptUrl} style={{ width:'100%', height:160, objectFit:'cover', display:'block' }} alt="preview" />
-                      <div style={{ position:'absolute', top:8, left:8, background:'var(--mint)', border:'var(--border)', borderRadius:99, padding:'3px 10px', fontSize:10, fontFamily:'Space Mono,monospace', fontWeight:700, display:'flex', alignItems:'center', gap:4 }}>
-                        <FAIcon name="circle-check" size={10} /> Foto siap
-                      </div>
-                      <button onClick={() => setReceiptUrl(null)}
-                        style={{ position:'absolute', top:8, right:8, width:30, height:30, background:'var(--red)', border:'var(--border)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' }}>
-                        <FAIcon name="xmark" size={13} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ marginBottom:12 }}>
-                      <p className="rlabel">FOTO STRUK (OPSIONAL)</p>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                        <label className="upload-area">
-                          <Camera size={20} />
-                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Kamera</span>
-                          <input id="receipt-camera" name="receipt-camera" type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleFileChange} />
-                        </label>
-                        <label className="upload-area">
-                          <Upload size={20} />
-                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Galeri</span>
-                          <input id="receipt-gallery" name="receipt-gallery" type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileChange} />
-                        </label>
-                      </div>
+                  <p className="rlabel">FOTO STRUK {newReceiptUrls.length > 0 && <span style={{ background:'var(--lav-bg)', border:'1.5px solid var(--black)', borderRadius:99, padding:'1px 8px', fontSize:10, marginLeft:4 }}>{newReceiptUrls.length} foto</span>}</p>
+                  {newReceiptUrls.length > 0 && (
+                    <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:10 }}>
+                      {newReceiptUrls.map((url, i) => (
+                        <div key={i} style={{ position:'relative', width:72, height:72, flexShrink:0 }}>
+                          <a href={url} target="_blank" rel="noreferrer"><img src={url} style={{ width:72, height:72, objectFit:'cover', borderRadius:10, border:'var(--border)', display:'block' }} alt={`foto ${i+1}`} /></a>
+                          <button onClick={() => setNewReceiptUrls(newReceiptUrls.filter((_,j) => j !== i))}
+                            style={{ position:'absolute', top:-6, right:-6, width:20, height:20, background:'var(--red)', border:'2px solid white', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', padding:0 }}>
+                            <FAIcon name="xmark" size={9} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
+                    <label className="upload-area" style={{ height:56 }}>
+                      <Camera size={18} />
+                      <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, fontWeight:700 }}>Kamera</span>
+                      <input type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleFileChange} />
+                    </label>
+                    <label className="upload-area" style={{ height:56 }}>
+                      <Upload size={18} />
+                      <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, fontWeight:700 }}>Galeri</span>
+                      <input type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileChange} />
+                    </label>
+                  </div>
 
                   <button className="rbtn rbtn-lav rbtn-full" onClick={handleAddTransaction} disabled={!newAmount || isUploading}
                     style={{ opacity: (!newAmount || isUploading) ? 0.5 : 1 }}>
                     {isUploading ? (
                       <><i className="fa-solid fa-spinner fa-spin"></i> Mengunggah...</>
                     ) : (
-                      <><FAIcon name="plus" size={14} /> Tambah ke Daftar {receiptUrl && <span style={{ background:'rgba(0,0,0,.15)', borderRadius:99, padding:'1px 7px', fontSize:10 }}>+foto</span>}</>
+                      <><FAIcon name="plus" size={14} /> Tambah ke Daftar {newReceiptUrls.length > 0 && <span style={{ background:'rgba(0,0,0,.15)', borderRadius:99, padding:'1px 7px', fontSize:10 }}>{newReceiptUrls.length} foto</span>}</>
                     )}
                   </button>
                 </div>
@@ -1147,36 +1159,43 @@
       const EditActualModal = () => {
         const [amount, setAmount] = useState(editingActual ? parseInt(editingActual.amount).toLocaleString('id-ID') : '');
         const [desc, setDesc] = useState(editingActual?.description || '');
-        const [receiptUrl, setReceiptUrl] = useState(editingActual?.receiptUrl || null);
+        const [receiptUrls, setReceiptUrls] = useState(() => editingActual ? getActualUrls(editingActual) : []);
         const [isUploading, setIsUploading] = useState(false);
 
         if (!editingActual || !selectedItem) return null;
 
         const handleFileChange = (e) => {
           const file = e.target.files[0];
-          if (file) { const reader = new FileReader(); reader.onloadend = () => setReceiptUrl(reader.result); reader.readAsDataURL(file); }
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onloadend = () => setReceiptUrls(prev => [...prev, reader.result]);
+          reader.readAsDataURL(file);
+          e.target.value = '';
         };
 
         const handleSave = async () => {
           const numericAmount = Number(amount.replace(/\./g, ''));
           if (!numericAmount || numericAmount <= 0) return alert('Nominal harus diisi');
           setIsUploading(true);
-          let finalUrl = receiptUrl;
           try {
-            if (receiptUrl && receiptUrl.startsWith('data:')) {
-              const res = await fetch(receiptUrl);
-              const blob = await res.blob();
-              const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}.jpg`;
-              const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, { contentType:'image/jpeg' });
-              if (error) throw error;
-              const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
-              finalUrl = publicUrlData.publicUrl;
+            const uploadedUrls = [];
+            for (const url of receiptUrls) {
+              if (url.startsWith('data:')) {
+                const res = await fetch(url);
+                const blob = await res.blob();
+                const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}_${Math.random().toString(36).substr(2,5)}.jpg`;
+                const { error } = await supabase.storage.from('receipts').upload(fileName, blob, { contentType:'image/jpeg' });
+                if (error) throw error;
+                const { data: pub } = supabase.storage.from('receipts').getPublicUrl(fileName);
+                uploadedUrls.push(pub.publicUrl);
+              } else {
+                uploadedUrls.push(url);
+              }
             }
-            const updatedActual = { ...editingActual, amount: numericAmount, description: desc, receiptUrl: finalUrl };
+            const updatedActual = { ...editingActual, amount: numericAmount, description: desc, receiptUrls: uploadedUrls, receiptUrl: undefined };
             const updatedActuals = selectedItem.actuals.map(a => a.id === editingActual.id ? updatedActual : a);
             await saveActualsToDB(selectedItem.id, updatedActuals);
-            const updatedItem = { ...selectedItem, actuals: updatedActuals };
-            setSelectedItem(updatedItem);
+            setSelectedItem({ ...selectedItem, actuals: updatedActuals });
             setEditingActual(null);
           } catch (err) { alert('Gagal menyimpan. Coba lagi.'); console.error(err); }
           setIsUploading(false);
@@ -1184,7 +1203,7 @@
 
         return (
           <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.6)', zIndex:300, display:'flex', alignItems:'flex-end', animation:'fadeIn .2s ease' }} className="no-print" onClick={() => setEditingActual(null)}>
-            <div className="sheet animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="sheet animate-slide-up" style={{ maxHeight:'95vh' }} onClick={e => e.stopPropagation()}>
               <div className="sheet-handle"></div>
               <div style={{ padding:'0 20px', marginBottom:14, flexShrink:0 }}>
                 <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 2px' }}>EDIT TRANSAKSI</p>
@@ -1202,34 +1221,34 @@
                   <input id="edit-trx-desc" type="text" className="rinput" style={{ marginBottom:12 }}
                     value={desc} onChange={e => setDesc(e.target.value)} placeholder="Cth: Bayar tol, makan siang..." />
 
-                  {receiptUrl ? (
-                    <div style={{ position:'relative', borderRadius:10, overflow:'hidden', border:'var(--border)', marginBottom:12 }}>
-                      <a href={receiptUrl.startsWith('data:') ? '#' : receiptUrl} target={receiptUrl.startsWith('data:') ? '_self' : '_blank'} rel="noreferrer">
-                        <img src={receiptUrl} style={{ width:'100%', height:160, objectFit:'cover', display:'block' }} alt="struk" />
-                      </a>
-                      <div style={{ position:'absolute', top:8, left:8, background:'var(--mint)', border:'var(--border)', borderRadius:99, padding:'3px 10px', fontSize:10, fontFamily:'Space Mono,monospace', fontWeight:700 }}>Foto terpasang</div>
-                      <button onClick={() => setReceiptUrl(null)}
-                        style={{ position:'absolute', top:8, right:8, width:30, height:30, background:'var(--red)', border:'var(--border)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' }}>
-                        <FAIcon name="xmark" size={13} />
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ marginBottom:12 }}>
-                      <p className="rlabel">FOTO STRUK (OPSIONAL)</p>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                        <label className="upload-area">
-                          <Camera size={20} />
-                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Kamera</span>
-                          <input type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleFileChange} />
-                        </label>
-                        <label className="upload-area">
-                          <Upload size={20} />
-                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Galeri</span>
-                          <input type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileChange} />
-                        </label>
-                      </div>
+                  <p className="rlabel">FOTO STRUK {receiptUrls.length > 0 && <span style={{ background:'var(--lav-bg)', border:'1.5px solid var(--black)', borderRadius:99, padding:'1px 8px', fontSize:10, marginLeft:4 }}>{receiptUrls.length} foto</span>}</p>
+                  {receiptUrls.length > 0 && (
+                    <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:10 }}>
+                      {receiptUrls.map((url, i) => (
+                        <div key={i} style={{ position:'relative', width:72, height:72, flexShrink:0 }}>
+                          <a href={url.startsWith('data:') ? '#' : url} target={url.startsWith('data:') ? '_self' : '_blank'} rel="noreferrer">
+                            <img src={url} style={{ width:72, height:72, objectFit:'cover', borderRadius:10, border:'var(--border)', display:'block' }} alt={`foto ${i+1}`} />
+                          </a>
+                          <button onClick={() => setReceiptUrls(receiptUrls.filter((_,j) => j !== i))}
+                            style={{ position:'absolute', top:-6, right:-6, width:20, height:20, background:'var(--red)', border:'2px solid white', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white', padding:0 }}>
+                            <FAIcon name="xmark" size={9} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:4 }}>
+                    <label className="upload-area" style={{ height:56 }}>
+                      <Camera size={18} />
+                      <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, fontWeight:700 }}>Kamera</span>
+                      <input type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleFileChange} />
+                    </label>
+                    <label className="upload-area" style={{ height:56 }}>
+                      <Upload size={18} />
+                      <span style={{ fontFamily:'Space Mono,monospace', fontSize:10, fontWeight:700 }}>Galeri</span>
+                      <input type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileChange} />
+                    </label>
+                  </div>
                 </div>
 
                 <div style={{ display:'flex', gap:10, paddingBottom:10 }}>
@@ -1308,31 +1327,46 @@
                   </div>
                   {selectedItem.actuals && selectedItem.actuals.length > 0 ? (
                     <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                      {selectedItem.actuals.map((act, idx) => (
-                        <div key={idx} className="rcard-sm" style={{ display:'flex', gap:12, alignItems:'center', padding:12 }}>
-                          {act.receiptUrl ? (
-                            <a href={act.receiptUrl} target="_blank" rel="noreferrer" style={{ width:52, height:52, flexShrink:0, borderRadius:10, overflow:'hidden', border:'var(--border)', display:'block' }}>
-                              <img src={act.receiptUrl} alt="struk" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                            </a>
-                          ) : (
-                            <div style={{ width:52, height:52, flexShrink:0, borderRadius:10, background:'var(--cream2)', border:'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', color:'#AAA' }}>
-                              <FileText size={20} />
+                      {selectedItem.actuals.map((act, idx) => {
+                        const urls = getActualUrls(act);
+                        return (
+                          <div key={idx} className="rcard-sm" style={{ padding:12 }}>
+                            <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+                              {urls.length > 0 ? (
+                                <a href={urls[0]} target="_blank" rel="noreferrer" style={{ position:'relative', width:52, height:52, flexShrink:0, borderRadius:10, overflow:'hidden', border:'var(--border)', display:'block' }}>
+                                  <img src={urls[0]} alt="struk" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                                  {urls.length > 1 && <div style={{ position:'absolute', bottom:2, right:2, background:'rgba(0,0,0,.65)', color:'white', borderRadius:4, fontSize:9, fontWeight:700, padding:'1px 4px' }}>+{urls.length-1}</div>}
+                                </a>
+                              ) : (
+                                <div style={{ width:52, height:52, flexShrink:0, borderRadius:10, background:'var(--cream2)', border:'var(--border)', display:'flex', alignItems:'center', justifyContent:'center', color:'#AAA' }}>
+                                  <FileText size={20} />
+                                </div>
+                              )}
+                              <div style={{ flex:1, minWidth:0 }}>
+                                <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, margin:'0 0 2px' }}>{formatRp(act.amount)}</p>
+                                <p style={{ fontSize:12, color:'#999', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                                  {act.description || <span style={{ fontStyle:'italic' }}>Tanpa keterangan</span>}
+                                </p>
+                              </div>
+                              {!isReadonly && (
+                                <button onClick={() => setEditingActual(act)}
+                                  style={{ width:34, height:34, borderRadius:8, background:'var(--lav-bg)', border:'1.5px solid var(--black)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                                  <i className="fa-solid fa-pen" style={{ fontSize:12 }}></i>
+                                </button>
+                              )}
                             </div>
-                          )}
-                          <div style={{ flex:1, minWidth:0 }}>
-                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:15, margin:'0 0 2px' }}>{formatRp(act.amount)}</p>
-                            <p style={{ fontSize:12, color:'#999', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                              {act.description || <span style={{ fontStyle:'italic' }}>Tanpa keterangan</span>}
-                            </p>
+                            {urls.length > 1 && (
+                              <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
+                                {urls.map((url, ui) => (
+                                  <a key={ui} href={url} target="_blank" rel="noreferrer" style={{ width:54, height:54, borderRadius:8, overflow:'hidden', border:'var(--border)', flexShrink:0, display:'block' }}>
+                                    <img src={url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt={`foto ${ui+1}`} />
+                                  </a>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          {!isReadonly && (
-                            <button onClick={() => setEditingActual(act)}
-                              style={{ width:34, height:34, borderRadius:8, background:'var(--lav-bg)', border:'1.5px solid var(--black)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
-                              <i className="fa-solid fa-pen" style={{ fontSize:12 }}></i>
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div style={{ textAlign:'center', padding:'32px 20px', border:'2px dashed #CCC', borderRadius:16 }}>
@@ -1367,7 +1401,10 @@
         activeProject.items.forEach((item, itemIdx) => {
           if (item.actuals && item.actuals.length > 0) {
             item.actuals.forEach((act) => {
-              if (act.receiptUrl) attachments.push({ itemNo:itemIdx+1, itemName:item.name, desc:act.description||'Tanpa keterangan', amount:act.amount, url:act.receiptUrl });
+              const urls = getActualUrls(act);
+              urls.forEach(url => {
+                attachments.push({ itemNo:itemIdx+1, itemName:item.name, desc:act.description||'Tanpa keterangan', amount:act.amount, url });
+              });
             });
           }
         });
