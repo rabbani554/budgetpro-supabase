@@ -12,7 +12,7 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -520,10 +520,10 @@
               setCurrentView('project_detail');
             } catch(err) {
               console.error('Import error:', err);
-              alert('Gagal membaca file Excel. Pastikan format file sesuai template (.xlsx).');
+              alert('Gagal import Excel.\nError: ' + (err && err.message ? err.message : String(err)));
             }
           };
-          reader.onerror = () => alert('Gagal membaca file. Coba lagi.');
+          reader.onerror = (e) => alert('Gagal membaca file.\nError: ' + (e && e.target && e.target.error ? e.target.error.message : 'Unknown'));
           reader.readAsArrayBuffer(file);
           e.target.value = '';
         };
