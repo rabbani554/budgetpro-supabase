@@ -491,27 +491,35 @@
           if (!file) return;
           const reader = new FileReader();
           reader.onload = async (evt) => {
-            const wb = XLSX.read(new Uint8Array(evt.target.result), { type:'array' });
-            const ws = wb.Sheets[wb.SheetNames[0]];
-            const data = XLSX.utils.sheet_to_json(ws);
-            const importedItems = data.map((row, idx) => ({
-              id: Date.now().toString() + '_' + idx,
-              name: row['Item'] || row['Nama Item'] || 'Item '+(idx+1),
-              qty: Number(row['Qty'] || row['Jumlah'] || 1),
-              unit: row['Unit'] || row['Satuan'] || 'paket',
-              budget: Number(row['Budget Satuan'] || row['Budget'] || row['Harga'] || 0),
-              notes: row['Keterangan'] || row['Catatan'] || '',
-              actuals: [], status: 'pending'
-            }));
-            const newProject = { id: Date.now().toString(), name: formData.name || 'Project Hasil Import', target: formData.target || '', startDate: formData.startDate, endDate: formData.endDate, owner: currentUser.username, items: importedItems };
-            const { data: insertedData } = await supabase.from('projects').insert([newProject]).select();
-            const savedProject = (insertedData && insertedData[0]) ? insertedData[0] : newProject;
-            setProjects(prev => [savedProject, ...prev.filter(p => p.id !== savedProject.id)]);
-            setActiveProject(savedProject);
-            setShowNewProjectModal(false);
-            setCurrentView('project_detail');
+            try {
+              const wb = XLSX.read(new Uint8Array(evt.target.result), { type:'array' });
+              const ws = wb.Sheets[wb.SheetNames[0]];
+              const data = XLSX.utils.sheet_to_json(ws);
+              if (!data || data.length === 0) { alert('File Excel kosong atau format tidak sesuai template.'); return; }
+              const importedItems = data.map((row, idx) => ({
+                id: Date.now().toString() + '_' + idx,
+                name: row['Item'] || row['Nama Item'] || 'Item '+(idx+1),
+                qty: Number(row['Qty'] || row['Jumlah'] || 1),
+                unit: row['Unit'] || row['Satuan'] || 'paket',
+                budget: Number(row['Budget Satuan'] || row['Budget'] || row['Harga'] || 0),
+                notes: row['Keterangan'] || row['Catatan'] || '',
+                actuals: [], status: 'pending'
+              }));
+              const newProject = { id: Date.now().toString(), name: formData.name || 'Project Hasil Import', target: formData.target || '', startDate: formData.startDate, endDate: formData.endDate, owner: currentUser.username, items: importedItems };
+              const { data: insertedData } = await supabase.from('projects').insert([newProject]).select();
+              const savedProject = (insertedData && insertedData[0]) ? insertedData[0] : newProject;
+              setProjects(prev => [savedProject, ...prev.filter(p => p.id !== savedProject.id)]);
+              setActiveProject(savedProject);
+              setShowNewProjectModal(false);
+              setCurrentView('project_detail');
+            } catch(err) {
+              console.error('Import error:', err);
+              alert('Gagal membaca file Excel. Pastikan format file sesuai template (.xlsx).');
+            }
           };
+          reader.onerror = () => alert('Gagal membaca file. Coba lagi.');
           reader.readAsArrayBuffer(file);
+          e.target.value = '';
         };
 
         const handleCreateManual = async () => {
