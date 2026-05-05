@@ -498,8 +498,7 @@
           if (!file) return;
           const reader = new FileReader();
           reader.onload = async (evt) => {
-            const bstr = evt.target.result;
-            const wb = XLSX.read(bstr, { type:'binary' });
+            const wb = XLSX.read(new Uint8Array(evt.target.result), { type:'array' });
             const ws = wb.Sheets[wb.SheetNames[0]];
             const data = XLSX.utils.sheet_to_json(ws);
             const importedItems = data.map((row, idx) => ({
@@ -519,7 +518,7 @@
             setShowNewProjectModal(false);
             setCurrentView('project_detail');
           };
-          reader.readAsBinaryString(file);
+          reader.readAsArrayBuffer(file);
         };
 
         const handleCreateManual = async () => {
