@@ -281,8 +281,10 @@
           updatedItems = [...activeProject.items, { ...itemData, id: Date.now().toString(), actuals: [], status: 'pending' }];
         }
         const updatedProject = { ...activeProject, items: updatedItems };
-        await supabase.from('projects').update({ items: updatedItems }).eq('id', updatedProject.id);
+        setActiveProject(updatedProject);
+        setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
         setShowItemModal(false);
+        await supabase.from('projects').update({ items: updatedItems }).eq('id', updatedProject.id);
       };
 
       const saveActualsToDB = async (itemId, newActuals) => {
