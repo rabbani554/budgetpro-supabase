@@ -200,14 +200,7 @@
           if (document.visibilityState === 'visible') {
             fetchUsers();
             fetchProjects();
-            supabase.removeChannel(userSub);
-            supabase.removeChannel(projectSub);
-            supabase.channel('users_changes')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchUsers)
-              .subscribe();
-            supabase.channel('projects_changes')
-              .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchProjects)
-              .subscribe();
+            try { supabase.realtime.connect(); } catch(e) {}
           }
         };
 
