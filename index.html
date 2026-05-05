@@ -170,6 +170,7 @@
       const [showDetailSidebar, setShowDetailSidebar] = useState(false);
       const [showFullReportSidebar, setShowFullReportSidebar] = useState(false);
       const [selectedItem, setSelectedItem] = useState(null);
+      const [editingActual, setEditingActual] = useState(null);
       const [deleteConfig, setDeleteConfig] = useState({ isOpen: false, type: '', payload: null, title: '', message: '' });
 
       const fetchUsers = async () => {
@@ -1143,6 +1144,107 @@
         );
       };
 
+      const EditActualModal = () => {
+        const [amount, setAmount] = useState(editingActual ? parseInt(editingActual.amount).toLocaleString('id-ID') : '');
+        const [desc, setDesc] = useState(editingActual?.description || '');
+        const [receiptUrl, setReceiptUrl] = useState(editingActual?.receiptUrl || null);
+        const [isUploading, setIsUploading] = useState(false);
+
+        if (!editingActual || !selectedItem) return null;
+
+        const handleFileChange = (e) => {
+          const file = e.target.files[0];
+          if (file) { const reader = new FileReader(); reader.onloadend = () => setReceiptUrl(reader.result); reader.readAsDataURL(file); }
+        };
+
+        const handleSave = async () => {
+          const numericAmount = Number(amount.replace(/\./g, ''));
+          if (!numericAmount || numericAmount <= 0) return alert('Nominal harus diisi');
+          setIsUploading(true);
+          let finalUrl = receiptUrl;
+          try {
+            if (receiptUrl && receiptUrl.startsWith('data:')) {
+              const res = await fetch(receiptUrl);
+              const blob = await res.blob();
+              const fileName = `${activeProject.id}/${selectedItem.id}_${Date.now()}.jpg`;
+              const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, { contentType:'image/jpeg' });
+              if (error) throw error;
+              const { data: publicUrlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
+              finalUrl = publicUrlData.publicUrl;
+            }
+            const updatedActual = { ...editingActual, amount: numericAmount, description: desc, receiptUrl: finalUrl };
+            const updatedActuals = selectedItem.actuals.map(a => a.id === editingActual.id ? updatedActual : a);
+            await saveActualsToDB(selectedItem.id, updatedActuals);
+            const updatedItem = { ...selectedItem, actuals: updatedActuals };
+            setSelectedItem(updatedItem);
+            setEditingActual(null);
+          } catch (err) { alert('Gagal menyimpan. Coba lagi.'); console.error(err); }
+          setIsUploading(false);
+        };
+
+        return (
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.6)', zIndex:300, display:'flex', alignItems:'flex-end', animation:'fadeIn .2s ease' }} className="no-print" onClick={() => setEditingActual(null)}>
+            <div className="sheet animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="sheet-handle"></div>
+              <div style={{ padding:'0 20px', marginBottom:14, flexShrink:0 }}>
+                <p style={{ fontFamily:'Space Mono,monospace', fontSize:10, color:'#888', margin:'0 0 2px' }}>EDIT TRANSAKSI</p>
+                <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:17, margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{selectedItem.name}</p>
+              </div>
+              <div className="sheet-scroll" style={{ paddingTop:0 }}>
+                <div className="rcard-sm" style={{ padding:14, marginBottom:14 }}>
+                  <label className="rlabel" htmlFor="edit-trx-amount">NOMINAL (Rp)</label>
+                  <input id="edit-trx-amount" type="text" inputMode="numeric" className="rinput" style={{ marginBottom:12 }}
+                    value={amount}
+                    onChange={e => { const raw = e.target.value.replace(/\D/g,''); setAmount(raw === '' ? '' : parseInt(raw).toLocaleString('id-ID')); }}
+                    placeholder="0" />
+
+                  <label className="rlabel" htmlFor="edit-trx-desc">KETERANGAN</label>
+                  <input id="edit-trx-desc" type="text" className="rinput" style={{ marginBottom:12 }}
+                    value={desc} onChange={e => setDesc(e.target.value)} placeholder="Cth: Bayar tol, makan siang..." />
+
+                  {receiptUrl ? (
+                    <div style={{ position:'relative', borderRadius:10, overflow:'hidden', border:'var(--border)', marginBottom:12 }}>
+                      <a href={receiptUrl.startsWith('data:') ? '#' : receiptUrl} target={receiptUrl.startsWith('data:') ? '_self' : '_blank'} rel="noreferrer">
+                        <img src={receiptUrl} style={{ width:'100%', height:160, objectFit:'cover', display:'block' }} alt="struk" />
+                      </a>
+                      <div style={{ position:'absolute', top:8, left:8, background:'var(--mint)', border:'var(--border)', borderRadius:99, padding:'3px 10px', fontSize:10, fontFamily:'Space Mono,monospace', fontWeight:700 }}>Foto terpasang</div>
+                      <button onClick={() => setReceiptUrl(null)}
+                        style={{ position:'absolute', top:8, right:8, width:30, height:30, background:'var(--red)', border:'var(--border)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' }}>
+                        <FAIcon name="xmark" size={13} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ marginBottom:12 }}>
+                      <p className="rlabel">FOTO STRUK (OPSIONAL)</p>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                        <label className="upload-area">
+                          <Camera size={20} />
+                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Kamera</span>
+                          <input type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleFileChange} />
+                        </label>
+                        <label className="upload-area">
+                          <Upload size={20} />
+                          <span style={{ fontFamily:'Space Mono,monospace', fontSize:11, fontWeight:700 }}>Galeri</span>
+                          <input type="file" accept="image/*" style={{ display:'none' }} onChange={handleFileChange} />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display:'flex', gap:10, paddingBottom:10 }}>
+                  <button className="rbtn rbtn-white" style={{ padding:'0 20px', height:48 }} onClick={() => setEditingActual(null)}>BATAL</button>
+                  <button className="rbtn rbtn-lav" onClick={handleSave} disabled={!amount || isUploading}
+                    style={{ flex:1, height:48, opacity: (!amount || isUploading) ? 0.5 : 1 }}>
+                    {isUploading ? <><i className="fa-solid fa-spinner fa-spin"></i> Menyimpan...</> : <><FAIcon name="floppy-disk" size={14} /> Simpan Perubahan</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
       const ItemDetailSidebar = () => {
         if (!selectedItem) return null;
         const planTotal = selectedItem.qty * selectedItem.budget;
@@ -1223,6 +1325,12 @@
                               {act.description || <span style={{ fontStyle:'italic' }}>Tanpa keterangan</span>}
                             </p>
                           </div>
+                          {!isReadonly && (
+                            <button onClick={() => setEditingActual(act)}
+                              style={{ width:34, height:34, borderRadius:8, background:'var(--lav-bg)', border:'1.5px solid var(--black)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
+                              <i className="fa-solid fa-pen" style={{ fontSize:12 }}></i>
+                            </button>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -1426,6 +1534,7 @@
           {showItemModal && <ItemPlanModal />}
           {showActualModal && <ActualInputModal />}
           {showDetailSidebar && <ItemDetailSidebar />}
+          {editingActual && <EditActualModal />}
           {showFullReportSidebar && <FullReportSidebar />}
           <ConfirmModal />
         </div>
