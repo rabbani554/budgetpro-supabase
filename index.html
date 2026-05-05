@@ -205,13 +205,11 @@
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('focus', handleVisibilityChange);
 
         return () => {
           supabase.removeChannel(userSub);
           supabase.removeChannel(projectSub);
           document.removeEventListener('visibilitychange', handleVisibilityChange);
-          window.removeEventListener('focus', handleVisibilityChange);
         };
       }, []);
 
