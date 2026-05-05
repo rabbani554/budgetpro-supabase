@@ -188,13 +188,38 @@
         if (sessionUser) setCurrentUser(JSON.parse(sessionUser));
         fetchUsers();
         fetchProjects();
+
         const userSub = supabase.channel('users_changes')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchUsers)
           .subscribe();
         const projectSub = supabase.channel('projects_changes')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchProjects)
           .subscribe();
-        return () => { supabase.removeChannel(userSub); supabase.removeChannel(projectSub); };
+
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'visible') {
+            fetchUsers();
+            fetchProjects();
+            supabase.removeChannel(userSub);
+            supabase.removeChannel(projectSub);
+            supabase.channel('users_changes')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, fetchUsers)
+              .subscribe();
+            supabase.channel('projects_changes')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, fetchProjects)
+              .subscribe();
+          }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', handleVisibilityChange);
+
+        return () => {
+          supabase.removeChannel(userSub);
+          supabase.removeChannel(projectSub);
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+          window.removeEventListener('focus', handleVisibilityChange);
+        };
       }, []);
 
       useEffect(() => {
