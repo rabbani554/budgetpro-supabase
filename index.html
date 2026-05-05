@@ -1402,9 +1402,7 @@
           if (item.actuals && item.actuals.length > 0) {
             item.actuals.forEach((act) => {
               const urls = getActualUrls(act);
-              urls.forEach(url => {
-                attachments.push({ itemNo:itemIdx+1, itemName:item.name, desc:act.description||'Tanpa keterangan', amount:act.amount, url });
-              });
+              if (urls.length > 0) attachments.push({ itemNo:itemIdx+1, itemName:item.name, desc:act.description||'Tanpa keterangan', amount:act.amount, urls });
             });
           }
         });
@@ -1537,17 +1535,23 @@
                     </h3>
                     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                       {attachments.map((att, idx) => (
-                        <div key={idx} style={{ border:'1.5px solid black', padding:12, borderRadius:10, display:'flex', gap:16, alignItems:'flex-start', pageBreakInside:'avoid', breakInside:'avoid' }}>
-                          <div style={{ flexShrink:0 }}>
-                            <a href={att.url} target="_blank" rel="noreferrer" style={{ display:'block' }}>
-                              <img src={att.url} style={{ width:180, height:180, objectFit:'contain', display:'block', border:'1px solid #EEE', borderRadius:6 }} alt={`Bukti ${idx+1}`} />
-                            </a>
-                            <a href={att.url} target="_blank" rel="noreferrer" style={{ fontSize:9, color:'#555', display:'block', marginTop:4, textAlign:'center', wordBreak:'break-all', textDecoration:'underline' }}>↗ buka foto asli</a>
-                          </div>
-                          <div style={{ flex:1 }}>
-                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, margin:'0 0 6px' }}>Item {att.itemNo}: {att.itemName}</p>
-                            <p style={{ fontSize:11, color:'#555', fontStyle:'italic', margin:'0 0 4px' }}>{att.desc}</p>
+                        <div key={idx} style={{ border:'1.5px solid black', padding:12, borderRadius:10, pageBreakInside:'avoid', breakInside:'avoid' }}>
+                          <div style={{ marginBottom:10 }}>
+                            <p style={{ fontFamily:'Space Mono,monospace', fontWeight:700, fontSize:13, margin:'0 0 4px' }}>Item {att.itemNo}: {att.itemName}</p>
+                            <p style={{ fontSize:11, color:'#555', fontStyle:'italic', margin:'0 0 2px' }}>{att.desc}</p>
                             <p style={{ fontFamily:'Space Mono,monospace', fontSize:13, fontWeight:700, margin:0 }}>{formatRp(att.amount)}</p>
+                          </div>
+                          <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+                            {att.urls.map((url, ui) => (
+                              <div key={ui} style={{ flexShrink:0 }}>
+                                <a href={url} target="_blank" rel="noreferrer" style={{ display:'block' }}>
+                                  <img src={url} style={{ width:150, height:150, objectFit:'contain', display:'block', border:'1px solid #EEE', borderRadius:6 }} alt={`Bukti ${idx+1}-${ui+1}`} />
+                                </a>
+                                <a href={url} target="_blank" rel="noreferrer" style={{ fontSize:9, color:'#555', display:'block', marginTop:4, textAlign:'center', textDecoration:'underline' }}>
+                                  ↗ {att.urls.length > 1 ? `foto ${ui+1}` : 'buka foto asli'}
+                                </a>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       ))}
